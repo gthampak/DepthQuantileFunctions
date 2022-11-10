@@ -1,0 +1,162 @@
+---
+title: "DQF Unsupervised"
+output: html_document
+date: '2022-11-10'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Functions
+
+`draw.circle` draws a circle on existing plot
+
+```{r}
+draw.circle <- function(center.x,center.y,radius){
+  x <- center.x
+  y <- center.y
+  r <- radius
+  
+  circle.x <- seq(x-r,x+r,.01)
+  upper.circle.y <- y+sqrt(r^2-(circle.x-x)^2)
+  lower.circle.y <- y-sqrt(r^2-(circle.x-x)^2)
+  
+  upper.circle <- cbind(circle.x,upper.circle.y)
+  lower.circle <- cbind(circle.x,lower.circle.y)
+  circle <- rbind(upper.circle,lower.circle)
+  
+  lines(circle)
+}
+```
+
+`dqf.outlier` Gabe Chandler's DQF Anomaly Github
+
+```{r}
+require(dqfAnomaly)
+```
+
+`plot.dqf`: Given a data frame of dqfs, where rows and columns are functions' x and y values respectively, plot them.
+
+```{r}
+plot.dqf <- function(dqf,labels){
+  x <- seq(.01,1,.01)
+  
+  n.functions <- length(dqf[,1])
+  
+  plot(x,dqf[1,],t='l',ylim=c(0,max(dqf)))
+  for(i in 2:n.functions){
+    lines(x,dqf[i,],col=labels[i])
+  }
+}
+```
+
+`scale.dqf`: Given dqfs, where rows and columns are functions' x and y values, scale y's to have min=0, max=1.
+
+```{r}
+scale.dqf <- function(dqf){
+  n.functions <- length(dqf[,1])
+  ret <- dqf
+  
+  for(i in 1:n.functions){
+    for(j in ret[i,]){
+      ret[i,j] <- ret[i,j]/ret[i,100]
+    }
+  }
+  
+  return(ret)
+  
+}
+```
+
+## Dataset 1
+
+```{r}
+set.seed(47)
+
+x <- rnorm(100)
+y <- rnorm(100)
+data1 <- cbind(x,y)
+x.anomaly1 <- seq(0,4,.33)
+y.anomaly1 <- seq(0,4,.33)
+data1.anomaly <- cbind(x.anomaly1,y.anomaly1)
+labels1 <- c(rep(1,length(data1[,1])),rep(2,length(data1.anomaly[,1])))
+data1 <- rbind(data1,data1.anomaly)
+
+plot(data1,col=labels1,asp=1)
+```
+
+```{r}
+plot(data1,col=labels1,asp=1)
+draw.circle(0,0,3)
+```
+
+```{r}
+dqfs1 <- dqf.outlier(data1)
+```
+
+```{r}
+dqf1 <- dqfs1$dqf1
+```
+
+```{r}
+ret <- scale.dqf(dqf1)
+```
+
+```{r}
+dqf
+```
+
+```{r}
+plot.dqf(scale.dqf(dqf1),labels1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

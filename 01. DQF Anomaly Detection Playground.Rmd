@@ -1,0 +1,195 @@
+---
+title: "1. DQF-Anomaly Detection Playground"
+output: pdf_document
+date: '2022-09-26'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(dqfAnomaly)
+```
+
+## Reproducing Vignette
+
+```{r}
+data(iris)
+iris <- iris 
+iris.sub <- iris[51:102,1:4]
+```
+
+```{r}
+dqf.explore(fit.dqf,show=51:52)
+```
+
+```{r}
+dqf.explore(fit.dqf,show=c(19,51:52))
+```
+
+## Explore via PCA
+
+```{r}
+c <- rep(1,52)
+c[c(19,51,52)] <- 2:4
+fit.pca <- princomp(iris.sub)
+plot(fit.pca$scores[,1],fit.pca$scores[,2], col=c)
+legend(-1.5,-.3, c(19,51,52), 2:4, bty="n")
+
+plot(fit.pca$scores[,3],fit.pca$scores[,4], col=c)
+legend(-.5,0, c(19,51,52), 2:4, bty="n")
+```
+## Experiments
+
+```{r}
+x <- seq(-4,4,.1)
+y <- x^2
+
+quadratic <- data.frame(x,y)
+quadratic[nrow(quadratic)+1,] = c(0,5)
+plot(quadratic)
+```
+
+```{r}
+fit.dqf <- dqf.outlier(quadratic,g.scale=6)
+```
+
+```{r}
+dqf.explore(fit.dqf,show=82)
+```
+
+### Now with some noise
+
+```{r}
+x <- seq(-4,4,.1)
+y <- x^2 + rnorm(length(x),0,.5)
+
+q.n <- data.frame(x,y)
+q.n[nrow(q.n)+1,] = c(0,5)
+plot(q.n)
+
+fit.dqf <- dqf.outlier(q.n,g.scale=6)
+dqf.explore(fit.dqf,show=82)
+```
+
+## More Noise
+
+```{r}
+x <- seq(-4,4,.1)
+y <- x^2 + rnorm(length(x),0,1)
+
+q.n <- data.frame(x,y)
+q.n[nrow(q.n)+1,] = c(0,5)
+plot(q.n)
+
+fit.dqf <- dqf.outlier(q.n,g.scale=6)
+dqf.explore(fit.dqf,show=82)
+```
+## 3-dimensions
+
+```{r}
+x <- seq(-4,4,.1)
+y <- x^2 + rnorm(length(x),0,.5)
+z <- x^2 + rnorm(length(x),0,.5)
+
+bowl <- data.frame(x,y,z)
+bowl[nrow(bowl)+1,] = c(0,5,5)
+plot(bowl)
+
+fit.dqf <- dqf.outlier(bowl,g.scale=6)
+dqf.explore(fit.dqf,show=nrow(bowl))
+```
+
+## Many many more dimensions (nd-bowl)
+
+```{r}
+nd.bowl <- function(n){
+  x <- seq(-4,4,.1)
+  df = data.frame(x)
+  for(i in 1:n-1){
+    y <- x^2 + rnorm(length(x),0,.5)
+    df <- cbind(df,y)
+  }
+  
+  outlier <- append(c(0), rep(5,n))
+  df[nrow(df)+1,] <- outlier
+  
+  return(df)
+}
+
+b <- nd.bowl(3)
+```
+
+```{r}
+b <- nd.bowl(10)
+plot(b)
+
+fit.dqf <- dqf.outlier(b,g.scale=6)
+dqf.explore(fit.dqf,show=nrow(b))
+```
+
+```{r}
+b <- nd.bowl(100)
+
+fit.dqf <- dqf.outlier(bowl,g.scale=6)
+dqf.explore(fit.dqf,show=nrow(bowl))
+```
+
+```{r}
+x <- seq(-4,4,.1)
+y <- x^2 + rnorm(length(x),0,.5)
+z <- sin(x) + rnorm(length(x),0,.1)
+
+df = data.frame(x,y,z)
+outlier <- c(0,2,2)
+df[nrow(df)+1,] <- outlier
+plot(df)
+
+
+three.d <- matrix(0,nrow=length(x),ncol=length(x))
+
+for (i in 1:length(x)){
+  for (j in 1:length(x)){
+    three.d[i,j] <- x[i]^2 + sin(x[j])
+  }
+}
+
+persp(three.d, theta=45)
+```
+
+```{r}
+fit.dqf <- dqf.outlier(df,g.scale=6)
+dqf.explore(fit.dqf,show=nrow(df))
+```
+
+```{r}
+x <- seq(-4,4,.1)
+y <- x^2 + rnorm(length(x),0,.5)
+z <- sin(x) + rnorm(length(x),0,.1)
+
+df = data.frame(x,y,z)
+outlier <- c(0,3,3)
+df[nrow(df)+1,] <- outlier
+plot(df)
+
+
+three.d <- matrix(0,nrow=length(x),ncol=length(x))
+
+for (i in 1:length(x)){
+  for (j in 1:length(x)){
+    three.d[i,j] <- x[i]^2 + sin(x[j])
+  }
+}
+
+persp(three.d, theta=45)
+```
+
+```{r}
+fit.dqf <- dqf.outlier(df,g.scale=6)
+dqf.explore(fit.dqf,show=nrow(bowl))
+```
+
+
+
+

@@ -1,0 +1,295 @@
+---
+title: "HSK PSSK TDA DQF"
+output: pdf_document
+---
+Import Python functions
+```{python, include=FALSE}
+def conv_obj(file):
+    ####
+    #  Converts .obj files to .off files as required for HKS code
+    ####
+    x = open(file)    
+    k = 0
+    while "\n" in x.readline():
+        k += 1
+    x = open(file)
+    out = str()
+    v = 0
+    f = 0
+    for i in range(k) :
+        y = x.readline().split()
+        if len(y) > 0 and y[0] == "v" :
+            v += 1
+            out += str(y[1]) + " " + str(y[2]) + " " + str(y[3]) + "\n"
+        if len(y) > 0 and y[0] == "f" :
+            f += 1
+            out += "3 " + str(int(y[1])-1) + " " + str(int(y[2])-1) + " " + str(int(y[3])-1) + "\n"
+    out1 = "OFF\n" + str(v) + " " + str(f) + " " + "0" + "\n" + out
+    w = open(file.strip("obj") + "off", "w")
+    w.write(out1)
+    w.close()
+    x.close()
+    return "done"
+    
+def read_off(file):
+    #####
+    #  Takes .off output from hks.py into data for computing filtration
+    #####
+    if 'COFF' != file.readline().strip():  #hks.py has COFF in first line, not OFF
+        raise('Not a valid OFF header')
+    n_verts, n_faces, n_remove = tuple([int(s) for s in file.readline().strip().split(' ')])
+    verts = [[float(s) for s in file.readline().strip().split()] for i_vert in range(n_verts)]
+    faces = [[int(s) for s in file.readline().strip().split()][1:] for i_face in range(n_faces)]
+    return verts, faces
+
+#### Compute PSSK for two persistence diagrams
+def pssk(A, B, sigma: float) -> float :
+    ps = 0
+    for i in range(len(A)):
+        for j in range(len(B)) :
+            left = -1/(8*sigma) * ((A[i][0]-B[j][0])**2 + (A[i][1]-B[j][1])**2) 
+            right = -1/(8*sigma) * ((A[i][0]-B[j][1])**2 + (A[i][1]-B[j][0])**2)
+            ps += math.exp(left) - math.exp(right)
+    return ps / (8 * math.pi * sigma)
+```
+
+
+Import R functions 
+```{r, include=FALSE}
+subsamp.dqf<- function(n.obs, subsample) {
+  pairs <- c()
+  subsample <- floor(subsample/2)*2
+  for (i in 1:n.obs) {
+    for (j in (i+1):(i+subsample/2)) {
+      pairs <- rbind(pairs, c(i,j*(j <= n.obs) + (j-n.obs)*(j > n.obs)))
+    }
+  }
+return(pairs)
+}
+  
+  
+dqf.outlier.gram <- function(gram, range=2, angle=45, p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE) {
+  # kernelized version of depthity
+  # 
+  # inputs: 
+  #   data - a data matrix of explanetory variables
+  #   kern - a kernel function (of form "linear", "rbf" or "poly", or a function)
+  #   range - how far from the anchor point should we extend in each direction
+  #   angle - angle of cone from midline
+  #   p1 - first parameter for kernel
+  #   p2 - second parameter for kernel
+  # returns:
+  #   object to be used by function computeDepthity
+  data = gram
+  subsample = min(subsample, nrow(gram)-1)
+  splits <- seq(-range,range,length.out=n.splits)
+  depthity <- rep(0,length(splits))
+  norm.k2 <- rep(0, nrow(data))
+  error.k <- rep(0, nrow(data))
+  k.to.mid <- rep(0, nrow(data))
+  pairs <- subsamp.dqf(nrow(data), subsample)
+  dep <- matrix(0, nrow=nrow(pairs), ncol=n.splits)
+  qfs <- matrix(0, nrow=nrow(pairs), ncol=100)
+  for (i.subs in 1:nrow(pairs)) {
+    i <- pairs[i.subs,1]
+    j <- pairs[i.subs,2]
+      for (k in 1:nrow(data)) {
+        norm.k2[k] <- gram[k,k] + 1/4*(gram[i,i]+gram[j,j]) + 1/2*gram[i,j]-gram[k,i]-gram[k,j]
+        k.to.mid[k] <- (gram[k,i]-gram[k,j]+1/2*(gram[j,j]-gram[i,i]))/sqrt(gram[i,i]+gram[j,j]-2*gram[i,j])
+        error.k[k] <- sqrt(abs(norm.k2[k] - k.to.mid[k]^2))
+      }
+      for (c in 1:length(splits)) {
+        good <- rep(1, nrow(data))
+        s <- splits[c]
+        good[k.to.mid/s > 1] <- 0  #points on other side of cone tip removed
+        d.to.tip <- abs(k.to.mid - s)
+        good <- good * (abs(atan(error.k / d.to.tip)) < (angle/360*2*pi))  #points outside of cone removed
+        good <- good * (1 - 2*(sign(k.to.mid)==sign(s)))  #which side of midpoint are they on
+        depthity[c] <- min(c(sum(good==-1), sum(good==1)))
+      }
+      dep[i.subs,] <- depthity
+      qfs[i.subs,] <- quantile(depthity, seq(0,1,length=100))
+  }
+  dqf <- matrix(0,nrow(data), 100)
+  for (i in 1:nrow(data))
+    dqf[i,] <- apply(qfs[which(pairs[,1]==i | pairs[,2]==i),],2,mean)
+  return(list(angle=angle, dqf=dqf))
+}
+
+dqf.explore <- function(dqfs) {
+  n.qs <- ncol(dqfs$dqf)
+  par(mfrow=c(1,1))
+  y.hat <- matrix(0, nrow=nrow(dqfs$dqf), ncol=99)
+  for (i in 1:nrow(dqfs$dqf)) {
+    y <- dqfs$dqf[i,]/ max(dqfs$dqf[i,])
+    x <- seq(0,1,length.out=length(y))
+    y.hat[i,] <- diff(ksmooth(x,y,kernel="normal", band=.05, n.points=100)$y)
+  }
+  plot(c(0,1), c(0,.1), t='n', main="Select Observations - Press ESC when done", xlab="1 of 3", ylab="")
+  for (i in 1:nrow(dqfs$dqf)) {
+    lines(seq(0.0,1,length.out=99), y.hat[i,], lwd=.3, col=2)
+  } 
+  points(cbind(seq(0,1,length.out=99),as.vector(t(y.hat))),t='n')
+  click.points <- identify(cbind(seq(0,1,length.out=99), as.vector(t(y.hat))))
+  click.points <- ceiling(click.points/99)
+  # round 2
+  plot(c(0,1), c(0,1), t='n', main="Select Observations - Press ESC when done", xlab="2 of 3", ylab="")
+  for (i in 1:nrow(dqfs$dqf)) {
+    lines(seq(0,1,length.out=100), dqfs$dqf[i,]/ (nrow(dqfs$dqf)/2), lwd=.3 + (sum(i==click.points)>0), col=2 + (sum(i==click.points)>0))
+  } 
+  points(cbind(seq(0,1,length.out=100),as.vector(t(dqfs$dqf/(nrow(dqfs$dqf)/2)))), t='n')
+  click.points2 <- identify(cbind(seq(0,1,length.out=100), as.vector(t(dqfs$dqf / (nrow(dqfs$dqf)/2)))))
+  click.points2 <- ceiling(click.points2/100)
+  click.points <- c(click.points, click.points2)
+  # round 3
+  dqf.norm <- dqfs$dqf/apply(dqfs$dqf,1,max)
+  plot(c(0,1), c(0,1), t='n', ylab="", main="Select Observations - Press ESC when done", xlab="3 of 3")
+  for (i in 1:nrow(dqfs$dqf)) {
+    lines(seq(0,1,length.out=n.qs), dqf.norm[i,], lwd=.3 + (sum(i==click.points)>0),  col=2+ (sum(i==click.points)>0))
+  } 
+  points(cbind(seq(0,1,length.out=100),as.vector(t(dqf.norm))), t='n')
+  click.points2 <- identify(cbind(seq(0,1,length.out=100), as.vector(t(dqf.norm))))
+  click.points2 <- ceiling(click.points2/100)
+  click.points <- unique(c(click.points, click.points2))
+  #finale
+  par(mfrow=c(1,3))
+  plot(c(0,1), c(0,1), t='n', ylab="")
+  for (i in 1:nrow(dqfs$dqf)) {
+    lines(seq(0,1,length.out=n.qs), dqf.norm[i,], lwd=.3,  col=2)
+  } 
+  if (length(click.points)>0) {
+  for (j in 1:length(click.points)) {
+    i <- click.points[j] 
+    lines(seq(0,1,length.out=n.qs), dqf.norm[i,], lwd=1,  col=2+j)
+  }  
+  }
+  plot(c(0,1), c(0,max(dqfs$dqf/(nrow(dqfs$dqf)/2) )), t='n', ylab="")
+  for (i in 1:nrow(dqfs$dqf)) {
+    lines(seq(0,1,length.out=n.qs), dqfs$dqf[i,]/ (nrow(dqfs$dqf)/2), lwd=.3, col=2)
+  } 
+  if (length(click.points)>0) {
+  for (j in 1:length(click.points)) {
+    i <- click.points[j] 
+    lines(seq(0,1,length.out=n.qs), dqfs$dqf[i,]/ (nrow(dqfs$dqf)/2), lwd=1,  col=2+j)
+  }  
+  }
+  plot(c(0,1), c(0,max(y.hat)), t='n', ylab="")
+  for (i in 1:nrow(dqfs$dqf)) {
+    lines(seq(0.0,1,length.out=99), y.hat[i,], lwd=.3, col=2)
+  }
+  if (length(click.points)>0) {
+  for (j in 1:length(click.points)) {
+    i <- click.points[j] 
+    lines(seq(0,1,length.out=99), y.hat[i,], lwd=1,  col=2+j)
+  } 
+  legend(.5,max(y.hat), click.points,1:length(click.points)+2)
+  return(click.points)
+  }
+}
+```
+
+Synthetic data set from SHREC14 consists of 300 meshes (available here: http://www.cs.cf.ac.uk/shaperetrieval/download.php).  They are .obj files, which we first convert to .off files as required by the hks.py function.  We assume they live in the directory (./SHREC14/OFF_Data) relative to the hks directory and that this is the current directory currently. 
+
+```{python}
+for i in range(300) :
+    file = str(i) + ".obj"
+    conv_obj(file)
+```
+
+Now that we have the necessary .off files, we compute the HKS (heat kernel signature) for a subset of them.  In this case, mesh 0 through 20 (mesh 0-19 all correspond to the same body). Note that these are stored in a different directory (./SHREC14/OFF_Data) from the hks.py directory, which should now be the current directory.  
+```{bash}
+for i in {0..20}; do python hks.py --input ./SHREC14/OFF_Data/${i}.off --t 500 --output ./SHREC14/OFF_Data/syn${i}_500.off; done
+```
+
+Now that we have the hks, we can compute the filtration and corresponding persistence diagram. Note: we are again in the directory containing the hks'd .off files. 
+```{python}
+import numpy as np
+import cechmate as cm
+import math
+
+t = 500 #using time parameter of 500 currently
+
+pd0 = []
+pd1 = []
+
+for ifile in range(0, 20) :
+    file = "syn" + str(ifile) + "_" + str(t) + ".off"
+    x = open(file)
+    print(file)
+    verts5, faces5 = read_off(x)
+    x.close()
+    verts5a = []
+    for i in range(0,len(verts5)) :
+        verts5a.append(verts5[i][5])
+    
+    #### Add lower dimensional structure to filtration (verticies and edges)   
+    filt1 = []    
+    for i in range(0,len(faces5)) :
+        filt1.append(faces5[i][1:3])
+        filt1.append(faces5[i][0:2])
+        filt1.append(faces5[i][slice(0,3,2)])
+        filt1.append([faces5[i][0]])
+        filt1.append([faces5[i][1]])
+        filt1.append([faces5[i][2]])
+        filt1.append(faces5[i])
+
+    temp = np.array(filt1, dtype=object)
+    filt_unique = np.unique(temp)
+    
+    filtration = []
+    for i in range(len(filt_unique)) :
+        m = len(filt_unique[i])
+        vals = []
+        for j in range(0,m) :
+            vals.append(verts5a[filt_unique[i][j]])
+        filtration.append((filt_unique[i], max(vals)))
+    betti0 = []
+    betti1 = []
+    dgms = cm.phat_diagrams(filtration, show_inf = True)
+    save0 = []
+    for i in range(len(dgms[0])) : 
+        if dgms[0][i][1] < 10 :
+            save0.append(i)
+    save1 = []
+    for i in range(len(dgms[1])) : 
+        if dgms[1][i][1] < 10 :
+            save1.append(i)
+    pd0.append(dgms[0][save0])
+    pd1.append(dgms[1][save1])
+    
+
+
+sigma = .5
+gram = []
+for i in range(21) :
+    newlist = []
+    for j in range(21) :
+        newlist.append(pssk(pd1[i], pd1[j], sigma))
+    gram.append(newlist)
+            
+flatgram = [x for sub in gram for x in sub]
+
+
+### outputs n^2 length vector to be converted into gram matrix in R. 
+
+sflatgram = str(flatgram)
+rflatgram = sflatgram[1:len(sflatgram)-1]  # remove brackets
+f = open("grammatrix2.txt", "w")
+f.write(rflatgram.replace(',', '\n'))  # convert to column vector
+f.close()
+``` 
+ 
+Load into R the gram matrix generated in python
+```{r}
+grammatrix <- read.table("~/TDA/pyhks/SHREC14/OFF_Data/grammatrix2.txt", quote="\"", comment.char="")
+gram <- matrix(grammatrix$V1, nrow=21)
+```
+
+Compute DQF plot. 
+```{r}
+dqf.tda <- dqf.outlier.gram(gram, range=15)
+dqf.explore(dqf.tda)
+```
+
+
+

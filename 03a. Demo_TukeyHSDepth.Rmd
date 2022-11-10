@@ -1,0 +1,168 @@
+---
+=title: "DQF_Demo"
+output: html_document
+date: '2022-10-26'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+set.seed(47)
+
+x1 <- -3+rnorm(50,0,1)
+x2 <- 3+rnorm(50,0,1)
+x <- append(x1,x2)
+y <- rep(0,length(x))
+labels <- append(rep("orange",50),rep("blue",50))
+data <- cbind(x,y,labels)
+
+norm1x <- seq(-6,0,.01)
+norm1y <- dnorm(norm1x,-3,1)
+norm2x <- seq(0,6,.01)
+norm2y <- dnorm(norm2x,3,1)
+
+plot(seq(-6,6),rep(0,length(seq(-6,6))),t='l',
+     main="Data",
+     xlab = "Feature 1",
+     ylab = "(Two) Probability Densities")
+points(data,col = labels)
+lines(norm1x,norm1y,col='orange')
+lines(norm2x,norm2y,col='blue')
+```
+
+
+```{r}
+draw.cone.1D <- function(point, angle, x.lim, y.lim,direction){
+  ptx <- as.numeric(point[1])
+  slope <- tan(angle*(pi/180))
+  
+  print(x.lim[2])
+  
+  if(direction == 1) x <- seq(ptx,x.lim[2])
+  else if(direction == -1) x <- seq(x.lim[1],ptx)
+  
+  y.upper <- slope*(x-ptx)
+  y.lower <- -slope*(x-ptx)
+  
+  lines(x,y.upper)
+  lines(x,y.lower)
+}
+
+
+
+plot(seq(-6,6),rep(0,length(seq(-6,6))),t='l',
+     main="Data",
+     xlab = "Feature 1",
+     ylab = "(Two) Probability Densities")
+points(data,col = labels)
+lines(norm1x,norm1y,col='orange')
+lines(norm2x,norm2y,col='blue')
+draw.cone.1D(data[3],30,c(-6,6),c(-1,1),1)
+```
+## Show in One Dimension (Simple)
+
+```{r}
+draw.cone.1D <- function(conetip, point, angle, x.lim,direction){
+  conetip <- as.numeric(conetip)
+  slope <- tan(angle*(pi/180))
+  
+  if(direction == 1) x <- seq(conetip,x.lim[2])
+  else if(direction == -1) x <- seq(x.lim[1],conetip)
+  
+  y.upper <- slope*(x-conetip)
+  y.lower <- -slope*(x-conetip)
+  
+  lines(x,y.upper)
+  lines(x,y.lower)
+  abline(v=point)
+}
+
+plotdata.1D <- function(data,labels){
+  plot.x <- seq(min(data[1]-.5),max(data[1]+.5),.01)
+  plot(plot.x,rep(0,length(plot.x)),t='l',
+     xlab="x1",
+     ylab="")
+  points(data,col=labels)
+}
+```
+
+### Initialize Data
+
+```{r}
+x <- c(-8,-9,-10,-5,-4,-3)
+y <- rep(0,length(x))
+labels <- append(rep('blue',3),rep('orange',3))
+data <- data.frame(x,y)
+
+plotdata.1D(data,labels)
+```
+## z-scale data
+
+```{r}
+data[1] <- apply(data[1], 2, scale)
+plotdata.1D(data,labels)
+print(data)
+```
+### Depth Quantile Functions
+
+```{r}
+plotdata.1D(data,labels)
+x.lim <- c(min(data[1]-.5),max(data[1]+.5))
+for(i in seq(data[1,1],-1.5,-.1)){
+  draw.cone.1D(i,data[1,1], 45, x.lim,direction=1)
+}
+```
+
+
+```{r}
+plotdata.1D(data,labels)
+x.lim <- c(min(data[,1]-.5),max(data[,1]+.5))
+for(i in seq(data[1,1],1.5,1)){
+  draw.cone.1D(i,data[1,1], 45, x.lim,direction=-1)
+}
+```
+
+
+
+```{r}
+par(mfrow=c(2,2))
+plotdata.1D(data,labels)
+plotdata.1D(data,labels)
+plotdata.1D(data,labels)
+plotdata.1D(data,labels)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
