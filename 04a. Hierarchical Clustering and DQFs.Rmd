@@ -120,6 +120,7 @@ for(i in 2:length(dqfs$dqf3[,1])){
   }
 }
 ```
+
 ```{r}
 dqf1.means <- c()
 dqf1.sds <- c()
@@ -244,7 +245,7 @@ total.norm <- dqf1.2norm+dqf2.2norm+dqf3.2norm
 total.bound <- dqf1.bound.2norm+dqf2.bound.2norm+dqf3.bound.2norm
 
 labels <- rep(1,length(total.norm))
-labels[which(total.norm >= total.bound-5)] <- 2
+labels[which(total.norm >= total.bound)] <- 2
 
 plot(total.norm, col=labels)
 abline(h=total.bound)

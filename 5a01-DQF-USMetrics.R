@@ -1,37 +1,3 @@
----
-title: "DQF Unsupervised"
-output:
-  pdf_document: default
-  html_document: default
-date: '2022-11-10'
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## Test Dataset
-
-```{r}
-set.seed(47)
-
-x <- rnorm(100)
-y <- rnorm(100)
-data1 <- cbind(x,y)
-x.anomaly1 <- seq(0,4,.33)
-y.anomaly1 <- seq(0,4,.33)
-data1.anomaly <- cbind(x.anomaly1,y.anomaly1)
-labels1 <- c(rep(1,length(data1[,1])),rep(2,length(data1.anomaly[,1])))
-data1 <- rbind(data1,data1.anomaly)
-
-plot(data1,col=labels1,asp=1)
-```
-
-## Functions and tests
-
-#### `draw.circle` draws a circle on existing plot
-
-```{r}
 draw.circle <- function(center.x,center.y,radius){
   x <- center.x
   y <- center.y
@@ -47,32 +13,7 @@ draw.circle <- function(center.x,center.y,radius){
   
   lines(circle)
 }
-```
 
-```{r}
-plot(data1,col=labels1,asp=1)
-draw.circle(0,0,3)
-```
-
-#### `dqf.outlier` Gabe Chandler's DQF Anomaly Github
-
-```{r}
-require(dqfAnomaly)
-```
-
-```{r}
-dqfs1 <- dqf.outlier(data1)
-```
-
-```{r}
-dqf1.1 <- dqfs1$dqf1
-dqf1.2 <- dqfs1$dqf2
-dqf1.3 <- dqfs1$dqf3
-```
-
-`plot.dqf`: Given a data frame of dqfs, where rows and columns are functions' x and y values respectively, plot them.
-
-```{r}
 plot.dqf <- function(dqf,labels=NULL){
   x <- seq(.01,1,.01)
   
@@ -84,24 +25,7 @@ plot.dqf <- function(dqf,labels=NULL){
     lines(x,dqf[i,],col=labels[i])
   }
 }
-```
 
-```{r}
-plot.dqf(dqf1.1,labels1)
-plot.dqf(dqf1.2,labels1)
-plot.dqf(dqf1.3,labels1)
-
-par(mfrow=c(1,3))
-plot.dqf(dqf1.1,labels1)
-plot.dqf(dqf1.2,labels1)
-plot.dqf(dqf1.3,labels1)
-```
-
-### Scale functions (function specific)
-
-#### `scale.dqf.max`: Given dqfs, where rows and columns are functions' x and y values, scale each function to have min=0, max=1.
-
-```{r}
 scale.dqf.max <- function(dqf){
   n.functions <- length(dqf[,1])
   ret <- dqf
@@ -115,22 +39,7 @@ scale.dqf.max <- function(dqf){
   
   return(ret)
 }
-```
 
-```{r}
-plot.dqf(scale.dqf.max(dqf1.1),labels1)
-plot.dqf(scale.dqf.max(dqf1.2),labels1)
-plot.dqf(scale.dqf.max(dqf1.3),labels1)
-
-par(mfrow=c(1,3))
-plot.dqf(scale.dqf.max(dqf1.1),labels1)
-plot.dqf(scale.dqf.max(dqf1.2),labels1)
-plot.dqf(scale.dqf.max(dqf1.3),labels1)
-```
-
-#### `scale.dqf.sum`: Given dqfs, where rows and columns are functions' x and y values, scale each function to its sum.
-
-```{r}
 scale.dqf.sum <- function(dqf){
   n.functions <- length(dqf[,1])
   ret <- dqf
@@ -144,24 +53,7 @@ scale.dqf.sum <- function(dqf){
   
   return(ret)
 }
-```
 
-```{r}
-plot.dqf(scale.dqf.sum(dqf1.1),labels1)
-plot.dqf(scale.dqf.sum(dqf1.2),labels1)
-plot.dqf(scale.dqf.sum(dqf1.3),labels1)
-
-par(mfrow=c(1,3))
-plot.dqf(scale.dqf.sum(dqf1.1),labels1)
-plot.dqf(scale.dqf.sum(dqf1.2),labels1)
-plot.dqf(scale.dqf.sum(dqf1.3),labels1)
-```
-
-### Scale functions (global)
-
-#### `scale.dqf.globalmax`: Given dqfs, where rows and columns are functions' x and y values, scale each function to relative to global max.
-
-```{r}
 scale.dqf.globalmax <- function(dqf){
   n.functions <- length(dqf[,1])
   globalmax <- max(dqf)
@@ -176,18 +68,7 @@ scale.dqf.globalmax <- function(dqf){
   
   return(ret)
 }
-```
 
-```{r}
-par(mfrow=c(1,3))
-plot.dqf(scale.dqf.globalmax(dqf1.1),labels1)
-plot.dqf(scale.dqf.globalmax(dqf1.2),labels1)
-plot.dqf(scale.dqf.globalmax(dqf1.3),labels1)
-```
-
-#### `scale.dqf.globalsum`: Given dqfs, where rows and columns are functions' x and y values, scale each function to relative to global sum.
-
-```{r}
 scale.dqf.globalsum <- function(dqf){
   n.functions <- length(dqf[,1])
   globalsum <- sum(dqf)
@@ -203,18 +84,7 @@ scale.dqf.globalsum <- function(dqf){
   
   return(ret)
 }
-```
 
-```{r}
-par(mfrow=c(1,3))
-plot.dqf(scale.dqf.globalsum(dqf1.1),labels1)
-plot.dqf(scale.dqf.globalsum(dqf1.2),labels1)
-plot.dqf(scale.dqf.globalsum(dqf1.3),labels1)
-```
-
-### Summary DQF (means and standard deviations)
-
-```{r}
 dqf.mean <- function(dqf){
   means <- c()
   
@@ -224,9 +94,7 @@ dqf.mean <- function(dqf){
   
   return(means)
 }
-```
 
-```{r}
 dqf.sd <- function(dqf){
   sds <- c()
   
@@ -236,9 +104,7 @@ dqf.sd <- function(dqf){
   
   return(sds)
 }
-```
 
-```{r}
 dqf.upperbound <- function(mean,sd,n.sd=2){
   return(mean+n.sd*sd)
 }
@@ -246,39 +112,18 @@ dqf.upperbound <- function(mean,sd,n.sd=2){
 dqf.lowerbound <- function(mean,sd,n.sd=2){
   return(mean-n.sd*sd)
 }
-```
 
-```{r}
 draw.mean.bounds <- function(mean, sd, n.sd=2){
   x <- seq(.01,1,.01)
   lines(x, mean, col='purple',lwd=2.0)
   lines(x,dqf.lowerbound(mean,sd),col='purple',lwd=2.0)
   lines(x,dqf.upperbound(mean,sd),col='purple',lwd=2.0)
 }
-```
 
-test
-
-```{r}
-par(mfrow = c(1,3))
-
-plot.dqf(dqf1.1,labels1)
-draw.mean.bounds(dqf.mean(dqf1.1),dqf.sd(dqf1.1),2)
-plot.dqf(dqf1.2,labels1)
-draw.mean.bounds(dqf.mean(dqf1.2),dqf.sd(dqf1.2),2)
-plot.dqf(dqf1.2,labels1)
-draw.mean.bounds(dqf.mean(dqf1.2),dqf.sd(dqf1.2),2)
-```
-
-### Function norms and operations
-
-```{r}
 func.2norm <- function(dqf1,dqf2){
   sqrt(sum((dqf1-dqf2)^2))
 }
-```
 
-```{r}
 dqf.2norm <- function(dqf){
   dqf.2norm <- c()
   
@@ -292,9 +137,7 @@ dqf.2norm <- function(dqf){
   
   return(dqf.2norm)
 }
-```
 
-```{r}
 plot.dqf.2norm <- function(dqf, n.sd=2){
   dqf.2norm <- c()
   labels <- c()
@@ -314,22 +157,11 @@ plot.dqf.2norm <- function(dqf, n.sd=2){
   plot(dqf.2norm,col=labels)
   abline(h=bound.dqf.2norm)
 }
-```
 
-```{r}
-par(mfrow=c(1,3))
-plot.dqf.2norm(dqf1.1)
-plot.dqf.2norm(dqf1.2)
-plot.dqf.2norm(dqf1.3)
-```
-
-```{r}
 func.supnorm <- function(dqf1,dqf2){
   sqrt(max((dqf1-dqf2)^2))
 }
-```
 
-```{r}
 dqf.supnorm <- function(dqf){
   dqf.supnorm <- c()
   
@@ -343,9 +175,7 @@ dqf.supnorm <- function(dqf){
   
   return(dqf.supnorm)
 }
-```
 
-```{r}
 plot.dqf.supnorm <- function(dqf, n.sd=2){
   dqf.supnorm <- c()
   labels <- c()
@@ -365,18 +195,7 @@ plot.dqf.supnorm <- function(dqf, n.sd=2){
   plot(dqf.supnorm,col=labels)
   abline(h=bound.dqf.supnorm)
 }
-```
 
-```{r}
-par(mfrow=c(1,3))
-plot.dqf.supnorm(dqf1.1)
-plot.dqf.supnorm(dqf1.2)
-plot.dqf.supnorm(dqf1.3)
-```
-
----
-
-```{r}
 prop.outside.bounds <- function(dqf, n.sd=2){
   n <- length(dqf[,1])
   count <- rep(0,n)
@@ -398,9 +217,7 @@ prop.outside.bounds <- function(dqf, n.sd=2){
   return(count/n)
   
 }
-```
 
-```{r}
 plot.prop.outside.bounds <- function(dqf,threshold=.2,n.sd=2){
   n <- length(dqf[,1])
   count <- rep(0,n)
@@ -424,35 +241,15 @@ plot.prop.outside.bounds <- function(dqf,threshold=.2,n.sd=2){
   abline(h=.2)
   
 }
-```
 
-```{r}
-par(mfrow=c(1,3))
-plot(prop.outside.bounds(dqf1.1))
-plot(prop.outside.bounds(dqf1.2))
-plot(prop.outside.bounds(dqf1.3))
-
-par(mfrow=c(1,3))
-plot.prop.outside.bounds(dqf1.1)
-plot.prop.outside.bounds(dqf1.2)
-plot.prop.outside.bounds(dqf1.3)
-```
-
-#### z-score
-
-```{r}
 dqf.zscore <- function(dqf){
   return(abs(scale(dqf)))
 }
-```
 
-```{r}
 dqf.mean.zscore <- function(dqf){
   return(rowSums(dqf.zscore(dqf))/length(dqf[,1]))
 }
-```
 
-```{r}
 plot.zscore.dqf <- function(dqf,labels=NULL){
   scaled <- abs(scale(dqf))
   
@@ -464,96 +261,13 @@ plot.zscore.dqf <- function(dqf,labels=NULL){
     lines(x,scaled[i,],col=labels[i])
   }
 }
-```
 
-```{r}
-par(mfrow=c(1,3))
-plot.zscore.dqf(dqf1.1,labels1)
-plot.zscore.dqf(dqf1.2,labels1)
-plot.zscore.dqf(dqf1.3,labels1)
-```
-
-```{r}
 plot.mean.zscores <- function(dqf,labels=NULL){
   mean.zscores <- rowSums(dqf.zscore(dqf))/length(dqf[1,])
   if(is.null(labels)) labels <- rep(1,length(dqf[,1]))
   
   plot(mean.zscores,col=labels)
 }
-```
-
-```{r}
-par(mfrow=c(1,3))
-plot.mean.zscores(dqf1.1,labels1)
-plot.mean.zscores(dqf1.2,labels1)
-plot.mean.zscores(dqf1.3,labels1)
-```
-
-```{r}
-l <- rep(1,length(dqf1.1))
-l[which(dqf.mean.zscore(dqf1.3) > 1.6)] <- 2
-plot.dqf(dqf1.3,l)
-plot(data1,col=l,asp=1)
-```
-
-
-
-computation
-- store q_ij
-  - average over different subsets/groups
-
-data
-- half moon
-- circles
-
-- others
-- fuzzy 1,2-manifold in high dimensions
-
-literature
-- using anomaly detection for unsupervised clustering
-- clustering for anomaly detection
-
-
-```{r}
-set.seed(47)
-x <- seq(-20,20,1)
-x1 <- x+20
-y1 <- (x-2)^2 + rnorm(length(x),0,20)
-y2 <- -(x+2)^2 + 500 + rnorm(length(x),0,20)
-
-data1 <- cbind(x,y1)
-data1 <- rbind(data1,cbind(x1[1],y2[1]))
-data2 <- cbind(x1,y2)
-
-plot(x,y1,xlim=c(-20,40),ylim=c(min(y1,y2),max(y1,y2)))
-points(x1,y2)
-```
-
-```{r}
-dqfs2 <- dqf.outlier(data1,g.scale=5)
-```
-
-```{r}
-dqfs3 <- dqf.outlier(data2,g.scale=5)
-```
-
-```{r}
-dqf.explore(dqfs2,42)
-```
-
-```{r}
-dqf.explore(dqfs3,1)
-```
-
-
-
-
-
-
-
-
-
-
 
 
 
