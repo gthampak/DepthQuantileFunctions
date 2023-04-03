@@ -1,0 +1,906 @@
+---
+title: "Final Presentation Figures"
+output:
+  pdf_document: default
+  html_document: default
+date: "2023-01-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(dqfAnomaly)
+```
+
+
+```{r}
+show <- function(length,s){
+  labels <- rep(1,length)
+  labels[s] <- 2
+  return(labels)
+}
+```
+
+```{r}
+plot.dqf <- function(dqf,labels=NULL,xlab='',ylab=''){
+  x <- seq(.01,1,.01)
+  
+  n.functions <- length(dqf[,1])
+  if(is.null(labels)) labels <- rep(1,n.functions) 
+  
+  plot(x,dqf[1,],t='l',ylim=c(0,max(dqf)),col=labels[1],xlab=xlab,ylab=ylab)
+  for(i in 2:n.functions){
+    lines(x,dqf[i,],col=labels[i])
+  }
+}
+```
+
+```{r}
+set.seed(47)
+x <- c(rnorm(20),rnorm(20,5))
+y <- c(rnorm(20),rnorm(20,5))
+df <- data.frame(x,y)
+df <- scale(df)
+plot(df)
+```
+
+```{r}
+km <- kmeans(df,2)
+cluster <- km$cluster
+length(which(cluster==1))
+```
+
+```{r}
+x1 <- 2*x
+x2 <- x+y
+y1 <- y^2
+y2 <- x-y
+
+df.highdim <- data.frame(x1,x2,y1,y2,rnorm(40),rnorm(40),rnorm(40),rnorm(40),rnorm(40))
+df.highdim <- scale(df.highdim)
+```
+
+```{r}
+km <- kmeans(df.highdim,2)
+cluster <- km$cluster
+cluster
+length(which(cluster==1))
+```
+
+
+## Half Moon Dataset
+
+```{r}
+?identify()
+```
+
+```{r}
+identifyPch <- function(x, y = NULL, n = length(x), plot = FALSE, pch = 19, ...)
+{
+    xy <- xy.coords(x, y); x <- xy$x; y <- xy$y
+    sel <- rep(FALSE, length(x))
+    while(sum(sel) < n) {
+        ans <- identify(x[!sel], y[!sel], labels = which(!sel), n = 1, plot = plot, ...)
+        if(!length(ans)) break
+        ans <- which(!sel)[ans]
+        points(x[ans], y[ans], pch = pch)
+        sel[ans] <- TRUE
+    }
+    ## return indices of selected points
+    which(sel)
+}
+```
+
+```{r,fig.height = 3,fig.width=3}
+set.seed(47)
+x <- seq(-20,20,.1)
+x1 <- x+20
+y1 <- (x-2)^2 + rnorm(length(x),0,30)
+y2 <- -(x+2)^2 + 500 + rnorm(length(x),0,30)
+
+data1 <- cbind(x,y1)
+data2 <- cbind(x1,y2)
+m.data <- rbind(data1,data2)
+m.labels <- c(rep(2,length(data1[,1])),rep(3,length(data2[,1])))
+
+m.df <- rbind(cbind(x,y1),cbind(x1,y2))
+
+plot(scale(m.df),col=m.labels,xlab='',ylab='')
+
+plot(m.data)
+plot(rbind(data1[393],data2))
+data3 <- rbind(data1[393],data2)
+```
+
+```{r}
+which(m.data[(length(x)/2):length(x),1] == max(m.data[(length(x)/2):length(x),1]))
+```
+
+```{r}
+hm.dqf <- dqf.outlier(data3)
+```
+
+```{r}
+dqf.explore(hm.dqf,1)
+```
+
+```{r}
+hm <- scale(m.data)
+hm.labels <- m.labels
+plot(hm,col=hm.labels)
+```
+
+```{r,fig.height = 3,fig.width=3}
+km <- kmeans(scale(m.df),2)
+plot(scale(m.df),col=km$cluster,xlab='',ylab='')
+```
+
+```{r}
+m.df <- scale(m.df)
+dist.m <- dist(m.df, method = 'euclidean')
+hc <- hclust(dist.m, method='single')
+fit <- cutree(hc, k = 2)
+table(fit)
+plot(m.df,col=fit)
+```
+
+```{r}
+m.df <- scale(m.df)
+m.df.hd <- matrix(m.df,nrow=length(m.df[,1]),ncol=length(m.df[1,]))
+m.df.hd <- m.df.hd %*% matrix(rnorm(2*20),nrow=2,ncol=20)
+```
+
+```{r}
+data <- data.frame(m.df.hd)
+```
+
+```{r}
+m.df.hd <- scale(m.df.hd)
+dist.m <- dist(m.df.hd, method = 'euclidean')
+hc <- hclust(dist.m, method = "average")
+fit <- cutree(hc, k = 7)
+table(fit)
+```
+
+```{r}
+m.df <- scale(m.df)
+dist.m <- dist(m.df, method = 'euclidean')
+hc <- hclust(dist.m, method = "average")
+fit <- cutree(hc, k = 7)
+table(fit)
+plot(m.df,col=fit)
+```
+
+```{r}
+m.df <- scale(m.df)
+dist.m <- dist(m.df, method = 'euclidean')
+hc <- hclust(dist.m, method = "average")
+fit <- cutree(hc, k = 7)
+table(fit)
+
+m.labels <- fit
+m.labels[c(which(fit==2),which(fit==3))] <- 1
+m.labels[c(which(fit==2),which(fit==3))] <- 1
+
+plot(m.df,col=m.labels)
+```
+
+
+```{r,fig.width=5,fig.height=5}
+plot(m.df[c(which(fit==1),which(fit==2)[1]),],col=show(length(which(fit==1))+1,length(which(fit==1))+1),asp=1)
+```
+
+```{r}
+m.dqf1 <- m.df[c(which(fit==1),which(fit==2)[1]),]
+example1 <- dqf.outlier(m.dqf1) 
+```
+
+```{r,fig.width=5,fig.height=5}
+plot.dqf(example1$dqf2,labels=show(length(which(fit==1))+1,length(which(fit==1))+1))
+```
+
+```{r}
+m.dqf1 <- m.df[c(which(fit==1),which(fit==2),which(fit==3)[1]),]
+example3 <- dqf.outlier(m.dqf1) 
+```
+
+```{r,fig.width=5,fig.height=5}
+plot.dqf(example3$dqf2,labels=show(length(m.dqf1[,1]),length(m.dqf1[,1])))
+```
+
+```{r}
+m.dqf1 <- m.df[c(which(fit==1),which(fit==2),which(fit==3),which(fit==4)[1]),]
+example2 <- dqf.outlier(m.dqf1) 
+plot.dqf(example2$dqf2,labels=show(length(m.dqf1[,1]),length(m.dqf1[,1])))
+```
+
+```{R}
+plot(m.df[c(which(fit==4),which(fit==5),which(fit==6)[14]),],col=show(length(c(which(fit==4),which(fit==5),which(fit==6)[1])),length(c(which(fit==4),which(fit==5),which(fit==6)[1]))))
+```
+
+```{r,fig.width=5,fig.height=5}
+m.dqf1 <- m.df[c(which(fit==5),which(fit==6)[14]),]
+example2 <- dqf.outlier(m.dqf1) 
+plot.dqf(example2$dqf2,labels=show(length(m.dqf1[,1]),length(m.dqf1[,1])))
+```
+
+```{r,fig.width=5,fig.height=5}
+m.dqf1 <- m.df[c(which(fit==4),which(fit==5)[1]),]
+example2 <- dqf.outlier(m.dqf1) 
+plot.dqf(example2$dqf2,labels=show(length(m.dqf1[,1]),length(m.dqf1[,1])))
+
+m.dqf1 <- m.df[c(which(fit==4),which(fit==5),which(fit==6)[1]),]
+example2 <- dqf.outlier(m.dqf1) 
+plot.dqf(example2$dqf2,labels=show(length(m.dqf1[,1]),length(m.dqf1[,1])))
+
+m.dqf1 <- m.df[c(which(fit==6),which(fit==7)[1]),]
+example2 <- dqf.outlier(m.dqf1) 
+plot.dqf(example2$dqf2,labels=show(length(m.dqf1[,1]),length(m.dqf1[,1])))
+```
+
+```{r,fig.width=5,fig.height=5}
+plot(m.df[c(which(fit==2),which(fit==4)[1]),],asp=1,col=show(length(which(fit==2))+1,length(which(fit==2))+1))
+```
+
+
+```{r}
+m.dqf2 <- m.df[c(which(fit==2),which(fit==4)[1]),]
+example2 <- dqf.outlier(m.dqf2)
+```
+
+```{r,fig.width=5,fig.height=5}
+plot.dqf(example2$dqf2,labels=show(length(which(fit==2)),length(which(fit==2))+1))
+```
+
+## adding dimensions to half moon
+
+```{r}
+m.df <- scale(m.df)
+dist.m <- dist(m.df, method = 'euclidean')
+hc <- hclust(dist.m, method = "average")
+fit <- cutree(hc, k = 7)
+table(fit)
+plot(m.df,col=fit)
+```
+
+```{r}
+m.df <- scale(m.df)
+dist.m <- dist(m.df, method = 'euclidean')
+hc <- hclust(dist.m, method = "average")
+fit <- cutree(hc, k = 7)
+table(fit)
+labs <- fit
+labs[which(fit==2)] <- 1
+plot(m.df,col=labs)
+```
+
+```{r}
+m.df <- scale(m.df)
+dist.m <- dist(m.df, method = 'euclidean')
+hc <- hclust(dist.m, method = "average")
+fit <- cutree(hc, k = 7)
+table(fit)
+labs <- fit
+labs[which(fit==2)] <- 1
+labs[which(fit==5)] <- 4
+labs[which(fit==3)] <- 1
+labs[which(fit==6)] <- 4
+labs[which(fit==7)] <- 4
+plot(m.df,col=labs)
+```
+
+```{r}
+m.df <- scale(m.df)
+ex2 <- m.df[c(which(fit==2),which(fit==4)[1]),]
+plot(ex2,asp=1,col=show(length(which(fit==2))+1,length(which(fit==2))+1))
+
+exdf2.5 <- scale(ex2)
+for(i in 1:2){
+  exdf2.5 <- cbind(exdf2.5,rnorm(52))
+}
+
+
+exdf2.5 <- data.matrix(exdf2.5)
+M1 <- matrix(rnorm(4*14),nrow=4,ncol=14)
+deez <- exdf2.5 %*% M1
+deez <- data.frame(deez)
+deez <- scale(deez)
+```
+
+```{r}
+exdf2.0 <- scale(ex2)
+exdf2.0 <- data.matrix(exdf2.0)
+exdf2.0 <- cbind(exdf2.0,rnorm(52))
+exdf2.0 <- cbind(exdf2.0,rnorm(52))
+M1 <- matrix(rnorm(4*14),nrow=4,ncol=14)
+deez <- exdf2.0 %*% M1
+deez <- data.frame(deez)
+deez <- scale(deez)
+```
+
+```{r}
+plot(ex2,col=show(256,256:256))
+```
+
+```{r}
+bruh <- dqf.outlier(deez,g.scale=10)
+```
+
+```{r}
+plot.dqf(bruh$dqf2,labels=show(256,256:256))
+```
+
+```{r}
+dist.m <- dist(deez, method = 'euclidean')
+hc <- hclust(dist.m, method = "single")
+fit <- cutree(hc, k = 2)
+table(fit)
+plot(ex2,col=fit)
+```
+
+
+```{r}
+label <- rep(1,45); label[42] <- 2
+plot(hm[1:45,],col=label)
+```
+
+```{r}
+hm.dqf <- dqf.outlier(hm[1:42,])
+```
+
+```{r}
+dqf.explore(hm.dqf,show=42)
+```
+
+
+## Line Example
+
+```{r}
+length(seq(-20,20,1))
+```
+
+```{r}
+set.seed(47)
+x <- seq(-20,20,.5)
+y <- x^2 + rnorm(41)
+x <- x + rnorm(41)
+
+x <- c(x,-13)
+y <- c(y,-2)
+
+plot(x,y,col=c(rep(1,81),2))
+
+parabola <- data.frame(x,y)
+```
+```{r}
+parabola.dqf <- dqf.outlier(parabola)
+```
+
+```{r}
+labels <- rep(1,10)
+labels[1:5] <- 2
+labels
+```
+
+```{r}
+plot.dqf(parabola.dqf$dqf2,labels=show(length(parabola.dqf$dqf2),c(1:8,75:83)))
+```
+
+
+## Circle Dataset
+
+```{r}
+set.seed(4747)
+x1 <- c(runif(20,-1,1),seq(-1,-.9,.03),seq(.9,1,.03))
+y1.1 <- sqrt(1-x1^2) + rnorm(length(x1),0,.1)
+y1.2 <- -sqrt(1-x1^2) + rnorm(length(x1),0,.1)
+c.data <- rbind(cbind(x1,y1.1),cbind(x1,y1.2))
+
+x2 <- c(runif(40,-2,2),seq(-2,-1.8,.03),seq(1.8,2,.03))
+y2.1 <- sqrt(4-x2^2) + rnorm(length(x2),0,.1)
+y2.2 <- -sqrt(4-x2^2) + rnorm(length(x2),0,.1)
+c.data <- rbind(c.data,rbind(cbind(x2,y2.1),cbind(x2,y2.2)))
+
+x3 <- c(runif(60,-3,3),seq(-3,-2.7,.03),seq(2.7,3,.03))
+y3.1 <- sqrt(9-x3^2) + rnorm(length(x3),0,.1)
+y3.2 <- -sqrt(9-x3^2) + rnorm(length(x3),0,.1)
+c.data <- rbind(c.data,rbind(cbind(x3,y3.1),cbind(x3,y3.2)))
+
+c.labels <- c(rep(1,2*length(x1)),rep(2,2*length(x2)),rep(3,2*length(x3)))
+
+plot(c.data,asp=1,col=c.labels)
+```
+
+```{r}
+d1 <- length(x1)*2
+d2 <- length(x2)*2
+plot(c.data[d1:(d2*1.5),],asp=1)
+```
+
+```{r}
+c.outlier <- c.data[d1:(d2*1.5),]
+c.outlier <- rbind(c.outlier,c.outlier[length(c.outlier[,1]),])
+plot(c.outlier,asp=1,col=show(length(c.outlier[,1]),1:1))
+```
+
+```{r}
+c.dqf <- dqf.outlier(c.outlier)
+```
+
+```{r}
+length(c.outlier[,1])
+```
+
+```{r}
+c.dqf$dqf2
+```
+
+```{r}
+plot.dqf(c.dqf$dqf2,labels=show(length(c.outlier[,1]),1:1))
+```
+
+
+
+
+
+
+
+## DQF Figures
+
+```{r}
+draw.cone <- function(data,idx1,idx2,min,max){
+  m <- (data[idx1,2]-data[idx2,2])/(data[idx1,1]-data[idx2,1])
+  b <- data[idx1,2] - m*data[idx1,1]
+  
+  x <- seq(min,max,.01)
+  y <- m*x + b
+  
+  lines(x,y)
+  
+  # draw mid line
+  
+  mid.x <- (data[idx1,1]+data[idx2,1])/2
+  mid.y <- (data[idx1,2]+data[idx2,2])/2
+  
+  mid.b <- mid.y - (-1/m)*mid.x
+  
+  ymids <- (-1/m)*x+mid.b
+  
+  lines(x,ymids,lty=2)
+  
+  # draw cones
+  m.cone1 <- tan(atan(m)+pi/4)
+  m.cone2 <- tan(atan(m)-pi/4)
+  
+  b.cone1 <- mid.y - (m.cone1)*mid.x
+  b.cone2 <- mid.y - (m.cone2)*mid.x
+  
+  if(m.cone1 < 0) x.cone1 <- seq(min,mid.x,.01)
+  else x.cone1 <- seq(mid.x,max,.01)
+  
+  if(m.cone2 < 0) x.cone2 <- seq(min,mid.x,.01)
+  else x.cone2 <- seq(mid.x,max,.01)
+  
+  y.cone1 <-  m.cone1*x.cone1 + b.cone1
+  y.cone2 <-  m.cone2*x.cone2 + b.cone2
+  lines(x.cone1,y.cone1,col='red')
+  lines(x.cone2,y.cone2,col='red')
+}
+```
+
+```{r}
+set.seed(47)
+x <- c(rnorm(20),rnorm(20,5))
+y <- c(rnorm(20),rnorm(20,5))
+df <- data.frame(x,y)
+df <- scale(df)
+plot(df,asp=1,ylim=c(-3,3),col=show(length(df[,1]),25))
+```
+
+```{r}
+set.seed(47)
+x <- c(rnorm(20),rnorm(20,5))
+y <- c(rnorm(20),rnorm(20,5))
+df <- data.frame(x,y)
+df <- scale(df)
+plot(df,asp=1,ylim=c(-3,3))
+draw.cone(df,1,25,min=-3,max=4)
+```
+```{r}
+fig <- dqf.outlier(df)
+```
+
+```{r}
+plot.dqf(fig$dqf2,xlab='Quantile',ylab='Depth')
+```
+
+```{r}
+draw.depths <- function(data,idx1,idx2,min,max){
+  m <- (data[idx1,2]-data[idx2,2])/(data[idx1,1]-data[idx2,1])
+  b <- data[idx1,2] - m*data[idx1,1]
+
+  x <- seq(min,max,.01)
+  y <- m*x + b
+  
+  # draw mid line
+  mid.x <- (data[idx1,1]+data[idx2,1])/2
+  mid.y <- (data[idx1,2]+data[idx2,2])/2
+  mid.b <- mid.y - (-1/m)*mid.x
+  ymids <- (-1/m)*x+mid.b
+  
+  x.dqf1 <- seq(min,mid.x,length.out=40)
+  num <- 50
+  for(pt.x in x.dqf1){
+    
+    pt.y <- m*pt.x+b
+    
+    m.cone1 <- tan(atan(m)+pi/4)
+    m.cone2 <- tan(atan(m)-pi/4)
+  
+    b.cone1 <- pt.y - (m.cone1)*pt.x
+    b.cone2 <- pt.y - (m.cone2)*pt.x
+  
+    x.cone1 <- seq(min,pt.x,length.out=25)
+    
+    x.cone2 <- seq(pt.x,max,length.out=25)
+  
+    y.cone1 <-  m.cone1*x.cone1 + b.cone1
+    y.cone2 <-  m.cone2*x.cone2 + b.cone2
+    
+    name <- paste(3.7,num,sep='')
+    num <- num+1
+    jpeg(paste(name,'.jpg',sep=''))
+    plot(df,asp=1,ylim=c(-3,3))
+    lines(x,y)
+    lines(x,ymids,lty=2)
+    lines(x.cone1,y.cone1,col='red')
+    lines(x.cone2,y.cone2,col='red')
+    dev.off()
+  }
+}
+```
+
+```{r}
+draw.depths2 <- function(data,idx1,idx2,min,max){
+  m <- (data[idx1,2]-data[idx2,2])/(data[idx1,1]-data[idx2,1])
+  b <- data[idx1,2] - m*data[idx1,1]
+
+  x <- seq(min,max,.01)
+  y <- m*x + b
+  
+  # draw mid line
+  mid.x <- (data[idx1,1]+data[idx2,1])/2
+  mid.y <- (data[idx1,2]+data[idx2,2])/2
+  mid.b <- mid.y - (-1/m)*mid.x
+  ymids <- (-1/m)*x+mid.b
+  
+  x.dqf1 <- seq(mid.x,max,length.out=40)
+  num <- 10
+  for(pt.x in x.dqf1){
+    
+    pt.y <- m*pt.x+b
+    
+    m.cone1 <- tan(atan(m)+pi/4)
+    m.cone2 <- tan(atan(m)-pi/4)
+  
+    b.cone1 <- pt.y - (m.cone1)*pt.x
+    b.cone2 <- pt.y - (m.cone2)*pt.x
+  
+    x.cone1 <- seq(pt.x,max,length.out=25)
+    
+    x.cone2 <- seq(min,pt.x,length.out=25)
+  
+    y.cone1 <-  m.cone1*x.cone1 + b.cone1
+    y.cone2 <-  m.cone2*x.cone2 + b.cone2
+    
+    name <- paste(3.7,num,sep='')
+    num <- num+1
+    jpeg(paste(name,'.jpg',sep=''))
+    plot(df,asp=1,ylim=c(-3,3))
+    lines(x,y)
+    lines(x,ymids,lty=2)
+    lines(x.cone1,y.cone1,col='red')
+    lines(x.cone2,y.cone2,col='red')
+    dev.off()
+  }
+}
+```
+
+```{r}
+name <- paste(3.7,10,sep='')
+name
+```
+
+```{r}
+name <- paste("hello",sep='',1)
+jpeg(paste(name,".jpg",sep=''))
+plot(df)
+dev.off()
+```
+
+```{r}
+draw.depths(df,1,25,min=-4,max=4)
+```
+
+```{r}
+draw.depths2(df,1,25,min=-4,max=4)
+```
+
+```{r}
+tan(-pi/4)
+tan(atan(-0.1544025)-pi/4)
+```
+
+
+## Try to break Euclidean space
+
+```{r}
+set.seed(47)
+x <- c(rnorm(50),rnorm(2,5))
+y <- c(rnorm(50),rnorm(2,5))
+df <- data.frame(x,y)
+df <- scale(df)
+
+plot(df)
+```
+
+```{r}
+clus.rate <- function(clus){
+  count <- length(which(clus[1:50]==2))
+  count <- count + length(which(clus[51:52]==1))
+  if(count>52/2) return(count)
+  else return(52-count)
+}
+```
+
+```{r}
+km <- kmeans(df,2)
+cluster <- km$cluster
+cluster
+clus.rate(cluster)
+```
+
+```{r}
+set.seed(47)
+x <- c(rnorm(50),rnorm(2,5))
+y <- c(rnorm(50),rnorm(2,5))
+df <- data.frame(x,y)
+df <- scale(df)
+
+for(i in 1:50){
+  df <- cbind(df,rnorm(52))
+}
+
+df <- scale(df)
+```
+
+```{r}
+set.seed(47)
+
+df1 <- scale(df)
+for(i in 1:1){
+  df1 <- cbind(df1,rnorm(52))
+}
+df1 <- scale(df1)
+
+df3 <- scale(df)
+for(i in 1:3){
+  df3 <- cbind(df3,rnorm(52))
+}
+df3 <- scale(df3)
+
+df6 <- scale(df)
+for(i in 1:6){
+  df6 <- cbind(df6,rnorm(52))
+}
+df6 <- scale(df6)
+
+df10 <- scale(df)
+for(i in 1:10){
+  df10 <- cbind(df10,rnorm(52))
+}
+df10 <- scale(df10)
+
+df20 <- scale(df)
+for(i in 1:20){
+  df20 <- cbind(df20,rnorm(52))
+}
+df20 <- scale(df20)
+
+df50 <- scale(df)
+for(i in 1:50){
+  df50 <- cbind(df50,rnorm(52))
+}
+df50 <- scale(df50)
+```
+
+```{r}
+test1 <- dqf.outlier(df1,g.scale = 10)
+test3 <- dqf.outlier(df3,g.scale = 10)
+test6 <- dqf.outlier(df6,g.scale = 10)
+test10 <- dqf.outlier(df10,g.scale = 10)
+test20 <- dqf.outlier(df20,g.scale = 10)
+test50 <- dqf.outlier(df50,g.scale = 10)
+```
+
+```{r}
+plot.dqf(test1$dqf2,labels=show(52,51:52))
+plot.dqf(test3$dqf2,labels=show(52,51:52))
+plot.dqf(test6$dqf2,labels=show(52,51:52))
+plot.dqf(test10$dqf2,labels=show(52,51:52))
+plot.dqf(test20$dqf2,labels=show(52,51:52))
+plot.dqf(test50$dqf2,labels=show(52,51:52))
+
+par(mfrow=c(2,3))
+```
+
+```{r}
+variability <- c(1,3,6,10,20,50)
+
+set.seed(47)
+x <- c(rnorm(50),rnorm(2,5))
+y <- c(rnorm(50),rnorm(2,5))
+df <- data.frame(x,y)
+df <- scale(df)
+df.hd <- scale(df)
+
+for(v in variability){
+
+  df.hd <- scale(df)
+  for(i in 1:v){
+    df.hd <- cbind(df.hd,rnorm(52))
+  }
+  df.hd <- scale(df.hd)
+
+  km <- kmeans(df.hd,2)
+  counts <- c(clus.rate(km$cluster))
+  for(i in 1:10000){
+    km <- kmeans(df.hd,2)
+    counts <- c(counts,clus.rate(km$cluster))
+  }
+  
+  par(mfrow = c(2,3))
+  hist(counts,breaks=26)
+}
+```
+
+## Depth, regular
+
+```{r}
+set.seed(47)
+x <- rnorm(6,0,1)
+y <- rnorm(6,0,1)
+x.line <- seq(-2,2,.1)
+df <- data.frame(x,y)
+df <- df[order(y),]
+
+labels <- c('black','black','black','black','black','black')
+labels[2] <- 'red'
+plot(df,xlab="",ylab="",pch=18,col=labels)
+```
+
+```{r}
+draw.line <- function(x,y,m){
+  xs <- seq(-2,2,.01)
+  b <- y-m*x
+  y <- m*xs+b
+  lines(xs,y)
+}
+```
+
+```{r}
+set.seed(47)
+x <- rnorm(6,0,1)
+y <- rnorm(6,0,1)
+df <- data.frame(x,y)
+df <- df[order(y),]
+temp <- df[2,]
+df[2,] <- df[3,]
+df[3,] <- temp
+
+x.line <- seq(-2,2,.1)
+
+labels <- c('black','black','black','black','black','black')
+labels[6] <- 'red'
+
+plot(df,xlab="",ylab="",col=labels,pch=18)
+
+m <- c((df$y[6]-df$y[5])/(df$x[6]-df$x[5]))
+for(i in 4:1){
+  m <- c(m,(df$y[6]-df$y[i])/(df$x[6]-df$x[i]))
+}
+
+ms <- c(m[1]+.1)
+for(i in 1:4){
+  ms <- c(ms,(m[i]+m[i+1])/2)
+}
+ms <- c(ms,m[5]-1)
+par(mfrow=c(2,3))
+for(m in ms){
+  plot(df,ylim=c(-1.6,.3),pch=18,col=c(1,1,1,1,1,6),xlab="",ylab="")
+  draw.line(df$x[6],df$y[6],m)
+}
+```
+```{r}
+set.seed(47)
+x <- rnorm(6,0,1)
+y <- rnorm(6,0,1)
+df <- data.frame(x,y)
+df <- df[order(y),]
+temp <- df[2,]
+df[2,] <- df[3,]
+df[3,] <- temp
+
+x.line <- seq(-2,2,.1)
+
+labels <- c('black','black','black','black','black','black')
+labels[6] <- 'red'
+
+plot(df,xlab="",ylab="",col=labels,pch=18)
+```
+
+```{r}
+m <- c((df$y[4]-df$y[6])/(df$x[4]-df$x[6]))
+for(i in c(5,3:1)){
+  m <- c(m,(df$y[4]-df$y[i])/(df$x[4]-df$x[i]))
+}
+
+m <- m[order(m)]
+m
+```
+
+```{r}
+ms <- c(m[1]-.1)
+for(i in 1:4){
+  ms <- c(ms,(m[i]+m[i+1])/2)
+}
+ms <- c(ms,m[5]+1)
+ms
+```
+
+```{r}
+par(mfrow=c(2,3))
+for(m in ms){
+  plot(df,ylim=c(-1.6,.3),pch=18,col=c(1,1,1,6,1,1),xlab="",ylab="")
+  draw.line(df$x[4],df$y[4],m)
+}
+```
+
+
+```{r}
+draw.seperator <- function(x1,y1,x2,y2){
+  x <- seq(-2,2,.01)
+  y <- ((y2-y1)/(x2-x1))*(x-x1)+y1
+  lines(x,y)
+}
+```
+
+```{r}
+set.seed(47)
+x <- rnorm(6,0,1)
+y <- rnorm(6,0,1)
+x.line <- seq(-2,2,.1)
+for(j in 1:length(x)){
+  labels <- c('black','black','black','black','black','black')
+  labels[j] = 'red'
+  par(mfrow=c(2,3))
+  for(i in 1:length(x)){
+    plot(x,y,xlab="",ylab="",col=labels,pch=18)
+    draw.seperator(x[i],y[i],x[j],y[j])
+  }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
