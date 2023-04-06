@@ -5,7 +5,7 @@ output:
   html_document: default
 date: "2023-03-23"
 editor_options:
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -414,7 +414,11 @@ calculate.qfs <- function(depths,k2mid,splits){
   
   for(i in 1:nrow(depths)){
     qf <- rep(0,100)
+    print("here")
+    print(i)
+    print(nrow(depths))
     d <- depths[i,]
+    # print(depths)
     k.sd <- sd.w(k2mid[i,],3)
     
     q.prev <- 1
@@ -581,12 +585,6 @@ library(glue)
 ```
 
 ```{r}
-plot.subset <- function(dqf.s,clus.pt,test.pt){
-  depths <- extract.depths(dqf.s,c(cluster))
-}
-```
-
-```{r}
 combine.prompt <- function(row,col,inter.dists,combined.clusters){
   yes <- '"Yes"'; no <- '"No"'; pp <- '"Postpone"'
   print(glue('Clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} are the closest by Euclidean distance (dist = {inter.dists[row,col]}).'))
@@ -596,10 +594,6 @@ combine.prompt <- function(row,col,inter.dists,combined.clusters){
     print(glue('Enter {no} to move on to next clusters.'))
     print(glue('Enter {pp} to consider combining these clusters later.'))
 }
-```
-
-```{r}
-combine.prompt(5,6,inter.d,combined.clusters)
 ```
 
 ```{r}
@@ -643,52 +637,74 @@ dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2
   
   print("We will now begin combining clusters.")
   print("You may type exit at any time and the function will return `dqf.subset` and currents clusters.")
+  print("Press Enter to continue")
   s = readline()
   while(s != 'exit'){
     
     mi <- which.min(inter.dists) # mi is short for min.index
     rc <- row.col(inter.dists,mi)
-    cluster.group1 <- rc$row; cluster.group2 <- rc$col
+    row <- rc$row; col <- rc$col
     
     # Prepare dqfs
     cpc <- closest.pt.clusters(inter.dists,combined.clusters[[row]],combined.clusters[[col]])
-    closest.pts[cpc$c1,cpc$c2] <- pt2.index # index of closest point in cluster group 2 to cg1
-    closest.pts[cpc$c2,cpc$c1] <- pt1.index # index of closest point in cluster group 1 to cg2
+    pt2.index <- closest.pts[cpc$c1,cpc$c2] # index of closest point in cluster group 2 to cg1
+    pt1.index <- closest.pts[cpc$c2,cpc$c1] # index of closest point in cluster group 1 to cg2
     
-    subset1 <- c(all.indices(clusters,combined.clusters[[cluster.group1]]),pt2.index)
+    subset1 <- c(all.indices(clusters,combined.clusters[[row]]),pt2.index)
     ed1 <- extract.depths(dqf.s,subset1)
     depths1 <- ed1$depths; subset1.pairs <- ed1$subset.pairs
-    qfs1 <- calculate.qfs(depths1,dqf.s$k.to.mids,dqf.s$splits)
+    qfs1 <- calculate.qfs(depths=depths1,dqf.s$k.to.mids,dqf.s$splits)
     dqfs1 <- calculate.dqfs(qfs1,subset1.pairs,subset1,n.obs)
     labels1 <- rep(1,length(subset1)); labels1[which(subset1==pt2.index)] <- 2
     
-    subset2 <- c(all.indices(clusters,combined.clusters[[cluster.group2]]),pt1.index)
+    subset2 <- c(all.indices(clusters,combined.clusters[[col]]),pt1.index)
     ed2 <- extract.depths(dqf.s,subset2)
     depths2 <- ed2$depths; subset2.pairs <- ed2$subset.pairs
-    qfs2 <- calculate.qfs(depths2,dqf.s$k.to.mids,dqf.s$splits)
+    qfs2 <- calculate.qfs(depths=depths2,dqf.s$k.to.mids,dqf.s$splits)
     dqfs2 <- calculate.dqfs(qfs2,subset2.pairs,subset2,n.obs)
     labels2 <- rep(1,length(subset2)); labels2[which(subset2==pt1.index)] <- 2
     
     combine.prompt(row,col,inter.dists,combined.clusters)
-    s <- readline()
     
-    if(s == "Yes"){
-      print(glue("Clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} were combined."))
-      combined.clusters <- combine.clusters(combined.clusters,row,col)
-      inter.dists[combined.clusters[[row]],combined.clusters[[col]]] <- Inf # don't need to consider combining them anymore
-    }else if(s == "No"){
-      print("Are you sure? Combinning clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} will not be revisited.")
-    }else if(s == "Later"){
-      print("later")
-    }else if(s == row){
-      print(row)
-    }else if(s == col){
-      print(col)
+    move.on <- FALSE
+    s <- readline()
+    while(!move.on){
+      if(s == "Yes"){
+        print(glue("Clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} were combined."))
+        combined.clusters <- combine.clusters(combined.clusters,row,col)
+        inter.dists[combined.clusters[[row]],combined.clusters[[col]]] <- Inf # don't need to consider combining them anymore
+        move.on <- TRUE
+      }else if(s == "No"){
+        print("Are you sure? If yes, combinning clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} will not be revisited.")
+        s <- readline()
+      }else if(s == "Later"){
+        print("later")
+        s <- readline()
+      }else if(s == row){
+        plot.dqf(dqfs1,labels1)
+        combine.prompt()
+        s <- readline()
+      }else if(s == col){
+        plot.dqf(dqfs2,labels2)
+        combine.prompt()
+        s <- readline()
+      }
     }
+    
+    
     
   }
   
 }
+```
+
+```{r}
+set.seed(47)
+data <- cbind(rnorm(50,0,1),rnorm(50,0,1))
+data <- rbind(data,c(5,5))
+plot(data)
+test.dqf <- dqf.subset(data)
+
 ```
 
 ```{r}
