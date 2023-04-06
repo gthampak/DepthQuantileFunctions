@@ -375,7 +375,7 @@ extract.dqf <- function(dqf,subset){
 
 *Inputs:* Output of `dqf.subset`
 
-*Returns:* Depths dataframe
+*Returns:* Depths dataframe, subset of pairs corresponding to depths dataframe
 
 ```{r}
 extract.depths <- function(dqf,subset){
@@ -383,7 +383,7 @@ extract.depths <- function(dqf,subset){
   depthity1 <- rep(0,100)
   
   indices <- which(dqf$ret.pairs[,1] %in% subset & dqf$ret.pairs[,2] %in% subset)
-  pairs <- dqf$ret.pairs[indices,]
+  subset.pairs <- dqf$ret.pairs[indices,]
   
   depths <- matrix(0, nrow=length(indices), ncol=100)
   
@@ -398,7 +398,7 @@ extract.depths <- function(dqf,subset){
     depths.count <- depths.count+1
   }
   
-  return(depths)
+  return(list(depths=depths,subset.pairs=subset.pairs))
 }
 ```
 
@@ -433,13 +433,41 @@ calculate.qfs <- function(depths,k2mid,splits){
     qfs[i,] <- qf
     
   }
-    
   return(qfs)
-  
+}
+```
+    
+
+```{r}
+calculate.dqfs <- function(qfs,pairs,subset,n.obs){
+  dqfs <- matrix(0,n.obs, 100)
+  for (i in 1:n.obs) {
+    dqfs[i,] <- apply(qfs[which(pairs[,1]==i | pairs[,2]==i),],2,mean, na.rm=TRUE)
+  }
+  return(dqfs[subset,])
 }
 ```
 
 ## Clustering
+
+### row.col
+
+*Input:* dataframe, index of interest
+
+*Returns:* returns 
+
+*Uses: * which.min returns a 1d index, this function turns 1d index to row,col (2d)
+
+```{r}
+row.col <- function(dataframe,index){
+  n.row <- nrow(dataframe); n.col <- ncol(dataframe)
+  mi <- index+n.row
+  col <- floor(mi/n.row); row <- mi-col*n.row
+  
+  return(list(row=row,col=col))
+  
+}
+```
 
 ```{r}
 initial.cluster <- function(data,n.clusters){
@@ -468,9 +496,9 @@ initial.cluster <- function(data,n.clusters){
       else{
         inter.dists[i,j] <- inter.dists[j,i] <- min(dist.mat[clus.indices[[i]],clus.indices[[j]]])
         
-        min.index <- which(dist.mat==inter.dists[i,j])[1]+n.obs
-        row <- floor(min.index/n.obs)
-        col <- min.index-row*n.obs
+        min.index <- which(dist.mat==inter.dists[i,j])[1]
+        rc <- row.col(dist.mat,min.index)
+        row <- rc$row; col <- rc$col
         
         if(row %in% clus.indices[[i]]){ closest.pts[j,i] <- row; closest.pts[i,j] <- col }
         else{ closest.pts[i,j] <- row; closest.pts[j,i] <- col }
@@ -483,12 +511,51 @@ initial.cluster <- function(data,n.clusters){
 }
 ```
 
-
 ```{r}
 combine.clusters <- function(combined.clusters,c1,c2){
   combined.clusters[[c1]] <- sort(c(combined.clusters[[c1]],combined.clusters[[c2]]))
   for(c in combined.clusters[[c1]]) combined.clusters[[c]] <- combined.clusters[[c1]]
   return(combined.clusters)
+}
+```
+
+### `all.indices`
+
+*Input:* a vector of clusters
+
+*Returns:* indices of data points in vector of clusters in original data
+
+```{r}
+all.indices <- function(clusters, cluster.group){
+  # to ensure function works with both single and vector cluster.group inputs
+  v <- c()
+  v <- c(v, cluster.group)
+  
+  indices <- c()
+  for(c in v) indices <- c(indices,which(clusters == c))
+  
+  return(indices)
+}
+```
+
+### `closest.pt.clusters`
+
+*Input:* inter.dists dataframe (minimum distance between points in clusters), source cluster group, second cluster group
+
+*Returns:* source cluster and destination cluster indices with closest points (to access closest.pt dataframe and isolate closest point)
+
+```{r}
+closest.pt.clusters <- function(inter.dists, cg1, cg2){
+  n.cg1 <- length(c(cg1))
+  n.cg2 <- length(c(cg2))
+  min.index <- which.min(inter.dists[cg1,cg2])
+  
+  rc <- row.col(inter.dists,min.index)
+  row <- rc$row; col <- rc$col
+  c1 <- cg1[row]; c2 <- cg2[col]
+  
+  return(list(c1=c1,c2=c2))
+                        
 }
 ```
 
@@ -578,8 +645,14 @@ dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2
   s = readline()
   while(s != 'exit'){
     
-    mi <- which.min(inter.d)+n.clusters
-    row <- floor(mi/n.clusters); col <- mi-row*n.clusters
+    mi <- which.min(inter.dists) # mi is short for min.index
+    rc <- row.col(inter.dists,mi)
+    row <- rc$row; col <- rc$col
+    
+    # Prepare dqfs
+    subset1 <- all.indices(clusters, combined.clusters[[row]])
+    cpc1 <- closest.pt.clusters(inter.dists,combined.clusters[[row]],combined.clusters[[col]])
+    
     
     combine.prompt(row,col,inter.dists,combined.clusters)
     s <- readline()
@@ -616,11 +689,16 @@ test.interact <- function(){
 }
 ```
 
+```{r}
+clus <- c(1,1,1,1,2,2,2,2,3,3,3,3)
+
+```
+
 ```
 ongoingtest.interact <- function(){
-  # mi <- which.min(inter.d)+n.clusters
-  # row <- floor(mi/n.clusters)
-  # col <- mi-row*n.clusters
+  # mi <- which.min(inter.d)
+  # rc <- row.col(inter.d,mi)
+  # row <- floor(mi/n.clusters); col <- mi-row*n.clusters
   
   s = ""
   while(s != 'exit'){
@@ -673,12 +751,16 @@ closest.pts <- ic$closest.pts
 
 # plot(m.data,col=clusters)
 
-# mi <- which.min(inter.d)+20
-# row <- floor(mi/n.clusters)
-# col <- mi-row*n.clusters
-# row
-# col
-# inter.d[195]
+mi <- which.min(inter.d)
+rc <- row.col(inter.d,mi)
+row <- rc$row; col <- rc$col
+closest.pts[row,col] %in% which(clusters==row) #false
+closest.pts[row,col] %in% which(clusters==col) #true
+inter.d[row,col]
+dist.mat[closest.pts[row,col],closest.pts[col,row]]
+
+print("-------")
+
 closest.pts[10,1] %in% which(clusters==1)
 closest.pts[1,10] %in% which(clusters==1)
 dist.mat[closest.pts[10,1],closest.pts[1,10]]
@@ -732,16 +814,41 @@ combined.clusters <- combine.clusters(combined.clusters,8,10)
 combined.clusters <- combine.clusters(combined.clusters,4,7)
 row <- 2; col <- 7
 print(glue("Clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} were combined."))
+combined.clusters[[col]]
 ```
 
-
+`
 
 ```{r}
 cluster.string(combined.clusters[[row]])
 ```
 
+```{r}
+cg1 <- c(1,2)
+cg2 <- c(3,4)
 
+n.cg1 <- length(c(cg1))
+n.cg2 <- length(c(cg2))
+mi <- which.min(inter.d[cg1,cg2])+n.cg1
 
+row <- floor(mi/n.cg1); col <- mi-row*n.cg2
+c1 <- cg1[row]; c2 <- cg2[col]
+c1
+c2
+```
+
+```{r}
+d <- data.frame(matrix(1:(6*9),nrow=6,ncol=9))
+n.row <- nrow(d); n.col <- ncol(d)
+mi <- 29
+rc <- row.col(d,mi)
+row <- rc$row; col <- rc$col
+d[row,col]
+```
+
+```{r}
+which(d==12)
+```
 
 
 
