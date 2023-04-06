@@ -637,8 +637,9 @@ dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2
   for(i in 1:n.clusters) combined.clusters[[i]] <- c(i)
   
   # calculate dqf.subset
+  print("Calculating `dqf.subset`...")
   dqf.s <- dqf.subset(data = data, gram.mat = gram.mat, g.scale=g.scale, angle=c(45), kernel=kernel, p1=p1, p2=p2, n.splits=n.splits, subsample=subsample, z.scale=z.scale, k.w=k.w, adaptive=adaptive, G=G)
-  
+  print("`dqf.subset` calculations complete.")
   
   print("We will now begin combining clusters.")
   print("You may type exit at any time and the function will return `dqf.subset` and currents clusters.")
@@ -647,12 +648,26 @@ dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2
     
     mi <- which.min(inter.dists) # mi is short for min.index
     rc <- row.col(inter.dists,mi)
-    row <- rc$row; col <- rc$col
+    cluster.group1 <- rc$row; cluster.group2 <- rc$col
     
     # Prepare dqfs
-    subset1 <- all.indices(clusters, combined.clusters[[row]])
-    cpc1 <- closest.pt.clusters(inter.dists,combined.clusters[[row]],combined.clusters[[col]])
+    cpc <- closest.pt.clusters(inter.dists,combined.clusters[[row]],combined.clusters[[col]])
+    closest.pts[cpc$c1,cpc$c2] <- pt2.index # index of closest point in cluster group 2 to cg1
+    closest.pts[cpc$c2,cpc$c1] <- pt1.index # index of closest point in cluster group 1 to cg2
     
+    subset1 <- c(all.indices(clusters,combined.clusters[[cluster.group1]]),pt2.index)
+    ed1 <- extract.depths(dqf.s,subset1)
+    depths1 <- ed1$depths; subset1.pairs <- ed1$subset.pairs
+    qfs1 <- calculate.qfs(depths1,dqf.s$k.to.mids,dqf.s$splits)
+    dqfs1 <- calculate.dqfs(qfs1,subset1.pairs,subset1,n.obs)
+    labels1 <- rep(1,length(subset1)); labels1[which(subset1==pt2.index)] <- 2
+    
+    subset2 <- c(all.indices(clusters,combined.clusters[[cluster.group2]]),pt1.index)
+    ed2 <- extract.depths(dqf.s,subset2)
+    depths2 <- ed2$depths; subset2.pairs <- ed2$subset.pairs
+    qfs2 <- calculate.qfs(depths2,dqf.s$k.to.mids,dqf.s$splits)
+    dqfs2 <- calculate.dqfs(qfs2,subset2.pairs,subset2,n.obs)
+    labels2 <- rep(1,length(subset2)); labels2[which(subset2==pt1.index)] <- 2
     
     combine.prompt(row,col,inter.dists,combined.clusters)
     s <- readline()
@@ -849,7 +864,6 @@ d[row,col]
 ```{r}
 which(d==12)
 ```
-
 
 
 
