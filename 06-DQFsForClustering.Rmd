@@ -5,7 +5,7 @@ output:
   html_document: default
 date: "2023-03-23"
 editor_options:
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -465,8 +465,10 @@ calculate.dqfs <- function(qfs,pairs,subset,n.obs){
 ```{r}
 row.col <- function(dataframe,index){
   n.row <- nrow(dataframe); n.col <- ncol(dataframe)
-  mi <- index+n.row
-  col <- floor(mi/n.row); row <- mi-col*n.row
+  
+  row <- index%%n.row
+  if(row==0){ row <- n.row; col <- index/n.row}
+  else{ col <- ceiling(index/n.row) }
   
   return(list(row=row,col=col))
   
@@ -615,6 +617,8 @@ cluster.string <- function(cluster){
 ```{r}
 dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2, angle=c(45), kernel="linear", p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE, k.w=3, adaptive=TRUE, G="norm"){
   
+  data <- scale(data)
+  
   # set n.obs - to number of observations
   if (is.null(data)) n.obs <- nrow(gram.mat)
   if (is.null(gram.mat)) n.obs <- nrow(data)
@@ -698,14 +702,41 @@ dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2
 }
 ```
 
+### `dqf.clustering` test run/debugging
+
 ```{r}
 set.seed(47)
 data <- cbind(rnorm(50,0,1),rnorm(50,0,1))
 data <- rbind(data,c(5,5))
-plot(data)
+data <- scale(data)
 test.dqf <- dqf.subset(data)
-
 ```
+
+```{r}
+n.obs <- nrow(data)
+n.clusters <- 3
+subsample <- n.obs # calculate all sub-samples
+
+# initial clustering
+ic <- initial.cluster(data,n.clusters)
+clusters <- ic$clusters
+inter.dists <- ic$inter.dists
+closest.pts <- ic$closest.pts
+```
+
+```{r}
+closest.pts
+inter.dists
+```
+```{r}
+l <- rep(1,nrow(data)); l[c(1,51)] <- 2
+plot(data,col=l)
+```
+
+
+
+
+----------
 
 ```{r}
 test.interact <- function(){
