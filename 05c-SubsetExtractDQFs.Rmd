@@ -233,7 +233,7 @@ calculate.dqfs <- function(qfs,pairs,subset,n.obs){
 ```
 
 ```{r}
-all.dqfs <- calculate.dqfs(all.qfs,all.depths$subset.pairs,1:201,n.obs)
+# all.dqfs <- calculate.dqfs(all.qfs,all.depths$subset.pairs,1:201,n.obs)
 subset.dqfs <- calculate.dqfs(subset.qfs,subset.depths$subset.pairs,subset=c(1:100,201),n.obs)
 ```
 
@@ -253,7 +253,7 @@ plot.dqf <- function(dqf,labels=NULL,xlab='',ylab='',main=''){
 ```
 
 ```{r}
-plot.dqf(all.dqfs)
+# plot.dqf(all.dqfs)
 l <- rep(1,101); l[101] <- 2; l[28] <- 2
 plot.dqf(subset.dqfs,l)
 ```

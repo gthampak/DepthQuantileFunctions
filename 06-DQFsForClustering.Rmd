@@ -5,7 +5,7 @@ output:
   html_document: default
 date: "2023-03-23"
 editor_options:
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -64,12 +64,17 @@ subsamp.dqf <- function(n.obs, subsample) {
 plot.dqf <- function(dqf,labels=NULL,xlab='',ylab='',main=''){
   x <- seq(.01,1,.01)
   
-  n.functions <- length(dqf[,1])
-  if(is.null(labels)) labels <- rep(1,n.functions) 
-  
-  plot(x,dqf[1,],t='l',ylim=c(0,max(dqf)),col=labels[1],xlab=xlab,ylab=ylab,main=main)
-  for(i in 2:n.functions){
-    lines(x,dqf[i,],col=labels[i])
+  if(nrow(dqf)==1){ # only one function
+    plot(x,dqf,t='l')
+  }
+  else{
+    n.functions <- nrow(dqf)
+    if(is.null(labels)) labels <- rep(1,n.functions) 
+    
+    plot(x,dqf[1,],t='l',ylim=c(0,max(dqf)),col=labels[1],xlab=xlab,ylab=ylab,main=main)
+    for(i in 2:n.functions){
+      lines(x,dqf[i,],col=labels[i])
+    }
   }
 }
 ```
@@ -331,7 +336,7 @@ dqf.subset <- function(data = NULL, gram.mat = NULL, g.scale=2, angle=c(45), ker
   # reorder
   # dqf1 <- dqf1[unscram,]  #map back to original indicies
   
-  return(list(dqf1=dqf1,ret.pairs=ret.pairs,ret.goods=ret.goods,k.to.mids=k.to.mids))
+  return(list(dqf1=dqf1,ret.pairs=ret.pairs,ret.goods=ret.goods,k.to.mids=k.to.mids,splits=splits))
 }
 ```
 
@@ -414,11 +419,7 @@ calculate.qfs <- function(depths,k2mid,splits){
   
   for(i in 1:nrow(depths)){
     qf <- rep(0,100)
-    print("here")
-    print(i)
-    print(nrow(depths))
     d <- depths[i,]
-    # print(depths)
     k.sd <- sd.w(k2mid[i,],3)
     
     q.prev <- 1
@@ -440,10 +441,13 @@ calculate.qfs <- function(depths,k2mid,splits){
   return(qfs)
 }
 ```
-    
+
 
 ```{r}
 calculate.dqfs <- function(qfs,pairs,subset,n.obs){
+  
+  if(length(pairs)==2) return(qfs)
+  
   dqfs <- matrix(0,n.obs, 100)
   for (i in 1:n.obs) {
     dqfs[i,] <- apply(qfs[which(pairs[,1]==i | pairs[,2]==i),],2,mean, na.rm=TRUE)
@@ -479,7 +483,7 @@ row.col <- function(dataframe,index){
 initial.cluster <- function(data,n.clusters){
   n.obs <- nrow(data)
   distance_mat <- dist(data, method = 'euclidean')
-  Hierar_cl <- hclust(distance_mat, method = "single")
+  Hierar_cl <- hclust(distance_mat, method = 'single')
   clusters <- cutree(Hierar_cl, k = n.clusters)
   
   # calculate minimum distance between clusters
@@ -514,6 +518,14 @@ initial.cluster <- function(data,n.clusters){
   }
   
   return(list(clusters=clusters,inter.dists=inter.dists,closest.pts=closest.pts))
+}
+```
+
+```{r}
+max.dist <- function(inter.dists){
+  id <- inter.dists
+  for(i in 1:length(id)){ if(id[i] == Inf) id[i] <- 0 }
+  return(max(id))
 }
 ```
 
@@ -562,6 +574,22 @@ closest.pt.clusters <- function(inter.dists, cg1, cg2){
   
   return(list(c1=row,c2=col))
                         
+}
+```
+
+```{r}
+compile.clusters <- function(clusters, combined.clusters){
+  final.clusters <- clusters
+  for(i in 1:length(combined.clusters)){
+    c <- combined.clusters[[i]][1]
+    indices <- c()
+    for(j in combined.clusters[[i]]){
+      indices <- c(indices,which(final.clusters==j))
+    }
+    final.clusters[indices] <- c
+  }
+  
+  return(final.clusters)
 }
 ```
 
@@ -615,7 +643,13 @@ cluster.string <- function(cluster){
 ```
 
 ```{r}
-dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2, angle=c(45), kernel="linear", p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE, k.w=3, adaptive=TRUE, G="norm"){
+dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20, gram.mat = NULL, g.scale=2, angle=c(45), kernel="linear", p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE, k.w=3, adaptive=TRUE, G="norm"){
+  
+  # cannot input both data and calculated dqf.s
+  if(!is.null(data) & !is.null(dqf.s)){
+    print("Invalid Input. Function can only take one of `data` or `dqf.s` as input.")
+    return()
+  }
   
   data <- scale(data)
   
@@ -631,20 +665,28 @@ dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2
   inter.dists <- ic$inter.dists
   closest.pts <- ic$closest.pts
   
+  
   combined.clusters <- list()
   for(i in 1:n.clusters) combined.clusters[[i]] <- c(i)
   
   # calculate dqf.subset
-  print("Calculating `dqf.subset`...")
-  dqf.s <- dqf.subset(data = data, gram.mat = gram.mat, g.scale=g.scale, angle=c(45), kernel=kernel, p1=p1, p2=p2, n.splits=n.splits, subsample=subsample, z.scale=z.scale, k.w=k.w, adaptive=adaptive, G=G)
-  print("`dqf.subset` calculations complete.")
+  if(is.null(dqf.s)){
+    print("Calculating `dqf.subset`...")
+    dqf.s <- dqf.subset(data = data, gram.mat = gram.mat, g.scale=g.scale, angle=c(45), kernel=kernel, p1=p1, p2=p2, n.splits=n.splits, subsample=subsample, z.scale=z.scale, k.w=k.w, adaptive=adaptive, G=G)
+    print("`dqf.subset` calculations complete.")
+  }
   
   print("We will now begin combining clusters.")
-  print("You may type exit at any time and the function will return `dqf.subset` and currents clusters.")
+  print("You may type exit at any time and the function will return `dqf.subset` and current clusters.")
   print("Press Enter to continue")
   s = readline()
   while(s != 'exit'){
+    move.on <- FALSE
     
+    if(min(inter.dists)==Inf){
+      final.clusters <- compile.clusters(clusters, combined.clusters)
+      return(list(dqf.s=dqf.s,final.clusters=final.clusters))
+    }
     mi <- which.min(inter.dists) # mi is short for min.index
     rc <- row.col(inter.dists,mi)
     row <- rc$row; col <- rc$col
@@ -670,34 +712,45 @@ dqf.clustering <- function(data = NULL,n.clusters=20, gram.mat = NULL, g.scale=2
     
     combine.prompt(row,col,inter.dists,combined.clusters)
     
-    move.on <- FALSE
     s <- readline()
     while(!move.on){
       if(s == "Yes"){
         print(glue("Clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} were combined."))
         combined.clusters <- combine.clusters(combined.clusters,row,col)
         inter.dists[combined.clusters[[row]],combined.clusters[[col]]] <- Inf # don't need to consider combining them anymore
+        inter.dists[combined.clusters[[col]],combined.clusters[[row]]] <- Inf
         move.on <- TRUE
       }else if(s == "No"){
-        print("Are you sure? If yes, combinning clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} will not be revisited.")
-        s <- readline()
+        # print("Are you sure? If yes, combinning clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} will not be revisited.")
+        # s <- readline()
+        inter.dists[combined.clusters[[row]],combined.clusters[[col]]] <- Inf
+        inter.dists[combined.clusters[[col]],combined.clusters[[row]]] <- Inf
+        move.on <- TRUE
       }else if(s == "Later"){
-        print("later")
+        print("Later")
         s <- readline()
       }else if(s == row){
         plot.dqf(dqfs1,labels1)
-        combine.prompt()
+        combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
       }else if(s == col){
         plot.dqf(dqfs2,labels2)
-        combine.prompt()
+        combine.prompt(row,col,inter.dists,combined.clusters)
+        s <- readline()
+      } else if(s == 'exit'){
+        move.on = TRUE
+      } else{
+        print("Invalid input")
+        combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
       }
     }
     
-    
-    
   }
+  
+  final.clusters <- compile.clusters(clusters, combined.clusters)
+  
+  return(list(dqf.s=dqf.s,final.clusters=final.clusters))
   
 }
 ```
@@ -719,34 +772,23 @@ test.dqf <- dqf.subset(data)
 n.obs <- nrow(data)
 n.clusters <- 3
 subsample <- n.obs # calculate all sub-samples
-
+x
 # initial clustering
 ic <- initial.cluster(data,n.clusters)
 clusters <- ic$clusters
 inter.dists <- ic$inter.dists
 closest.pts <- ic$closest.pts
 inter.dists
+closest.pts
+```
+
+```{r}
+max.dist(inter.dists)
 ```
 
 ```{r}
 combined.clusters <- list()
 for(i in 1:n.clusters) combined.clusters[[i]] <- c(i)
-```
-
-```{r}
-cg1 <- combined.clusters[[row]]; cg2 <- combined.clusters[[col]]
-n.cg1 <- length(c(cg1)); cg1
-n.cg2 <- length(c(cg2)); cg2 
-m <- min(inter.dists[cg1,cg2])
-min.index <- which(inter.dists==m)[1]
-min.index
-
-rc <- row.col(inter.dists,min.index)
-row <- rc$row; col <- rc$col
-row
-col
-c1 <- cloest[row]; c2 <- inter.dists[col]
-c1; c2
 ```
 
 ```{r}
@@ -758,14 +800,61 @@ pt2.index <- closest.pts[cpc$c1,cpc$c2] # index of closest point in cluster grou
 pt1.index <- closest.pts[cpc$c2,cpc$c1] # index of closest point in cluster group 1 to cg2
 ```
 
+```{r}
+subset1 <- c(all.indices(clusters,combined.clusters[[row]]),pt2.index)
+ed1 <- extract.depths(test.dqf,subset1)
+depths1 <- ed1$depths; subset1.pairs <- ed1$subset.pairs
+qfs1 <- calculate.qfs(depths=depths1,test.dqf$k.to.mids,test.dqf$splits)
+dqfs1 <- calculate.dqfs(qfs1,subset1.pairs,subset1,n.obs)
+labels1 <- rep(1,length(subset1)); labels1[which(subset1==pt2.index)] <- 2
+```
 
+```{r}
+qfs1 <- calculate.qfs(depths=depths1,test.dqf$k.to.mids,test.dqf$splits)
+qfs1
+```
+
+```{r}
+subset2 <- c(all.indices(clusters,combined.clusters[[col]]),pt1.index)
+ed2 <- extract.depths(test.dqf,subset2)
+depths2 <- ed2$depths; subset2.pairs <- ed2$subset.pairs
+qfs2 <- calculate.qfs(depths=depths2,test.dqf$k.to.mids,test.dqf$splits)
+dqfs2 <- calculate.dqfs(qfs2,subset2.pairs,subset2,n.obs)
+labels2 <- rep(1,length(subset2)); labels2[which(subset2==pt1.index)] <- 2
+```
+
+```{r}
+length(qfs2)
+```
+
+```{r}
+plot.dqf(dqfs2,labels2)
+```
 
 ```{r}
 l <- rep(1,nrow(data)); l[c(1,51)] <- 2
 plot(data,col=l)
 ```
 
+```{r}
+cpc <- closest.pt.clusters(inter.dists,combined.clusters[[row]],combined.clusters[[col]])
+pt2.index <- closest.pts[cpc$c1,cpc$c2] # index of closest point in cluster group 2 to cg1
+pt1.index <- closest.pts[cpc$c2,cpc$c1] # index of closest point in cluster group 1 to cg2
 
+subset1 <- c(all.indices(clusters,combined.clusters[[row]]),pt2.index)
+ed1 <- extract.depths(dqf.s,subset1)
+depths1 <- ed1$depths; subset1.pairs <- ed1$subset.pairs
+qfs1 <- calculate.qfs(depths=depths1,dqf.s$k.to.mids,dqf.s$splits)
+dqfs1 <- calculate.dqfs(qfs1,subset1.pairs,subset1,n.obs)
+labels1 <- rep(1,length(subset1)); labels1[which(subset1==pt2.index)] <- 2
+
+subset2 <- c(all.indices(clusters,combined.clusters[[col]]),pt1.index)
+ed2 <- extract.depths(dqf.s,subset2)
+depths2 <- ed2$depths; subset2.pairs <- ed2$subset.pairs
+qfs2 <- calculate.qfs(depths=depths2,dqf.s$k.to.mids,dqf.s$splits)
+dqfs2 <- calculate.dqfs(qfs2,subset2.pairs,subset2,n.obs)
+labels2 <- rep(1,length(subset2)); labels2[which(subset2==pt1.index)] <- 2
+```
 
 
 ----------
@@ -783,10 +872,6 @@ test.interact <- function(){
 }
 ```
 
-```{r}
-clus <- c(1,1,1,1,2,2,2,2,3,3,3,3)
-
-```
 
 ```
 ongoingtest.interact <- function(){
@@ -943,6 +1028,29 @@ d[row,col]
 ```{r}
 which(d==12)
 ```
+
+
+```{r}
+set.seed(47)
+d1 <- cbind(rnorm(50),rnorm(50))
+d2 <- cbind(rnorm(50,5),rnorm(50,5))
+d3 <- cbind(rnorm(50,-5),rnorm(50,-5))
+data <- rbind(d1,d2,d3)
+plot(data)
+```
+
+```{r}
+set.seed(47)
+x <- seq(-20,20,.1)
+x1 <- x+20
+y1 <- (x-2)^2 + rnorm(length(x),0,30)
+y2 <- -(x+2)^2 + 550 + rnorm(length(x),0,30)
+data1 <- cbind(x,y1)
+data2 <- cbind(x1,y2)
+m.data <- rbind(data1,data2)
+plot(m.data)
+```
+
 
 
 
