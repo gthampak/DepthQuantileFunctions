@@ -397,7 +397,7 @@ cluster.string <- function(cluster){
 
 dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20, gram.mat = NULL, g.scale=2, angle=c(45), kernel="linear", p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE, k.w=3, adaptive=TRUE, G="norm"){
   
-  data <- scale(data)
+  # data <- scale(data)
   
   # set n.obs - to number of observations
   if (is.null(data)) n.obs <- nrow(gram.mat)
