@@ -21,9 +21,243 @@ set.seed(47)
 one.outlier <- data.one.outlier(n.data=50,n.outliers=3, dist.outliers=6)
 o.data <- one.outlier$data
 o.labels <- one.outlier$labels
+plot(o.data,col=o.labels)
 ```
 
 ```{r}
-o.dqfs.s <- 
+o.dqfs <- readRDS("./RDS Files/01a01. o-dqfs.RDS")
+# o.dqfs.s <- dqf.subset(o.data,subsample=nrow(o.data))
+# saveRDS(o.dqfs.s, file = "./RDS Files/02a01. o-dqfs-s.RDS")
+o.dqfs.s <- readRDS("./RDS Files/02a01. o-dqfs-s.RDS")
 ```
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(o.dqfs$dqf2,labels=o.labels)
+plot.dqf(o.dqfs.s$dqf1,labels=o.labels)
+```
+
+```{r}
+ret.pairs <- o.dqfs.s$ret.pairs
+ret.goods <- o.dqfs.s$ret.goods
+k.to.mids <- o.dqfs.s$k.to.mids
+```
+
+```{r}
+# 53 choose 2
+nrow(ret.pairs)
+length(ret.goods)
+nrow(k.to.mids)
+```
+
+```{r}
+nrow(ret.goods[[1]]) # length splits (n.splits)
+ncol(ret.goods[[1]]) # nrow(data), number of total data points
+```
+
+```{r}
+depthity <- rep(0,nrow(ret.goods[[1]]))
+qfs <- matrix(0, nrow=nrow(ret.pairs), ncol=100)
+```
+
+```{r}
+for(i in 1:nrow(ret.pairs)){
+  goods <- ret.goods[[i]]
+  for(c in 1:nrow(ret.goods[[1]])){ # 100
+    good <- goods[c,]
+    depthity[c] <- min(c(sum(good==-1), sum(good==1)))
+  }
+  qfs[i,] <- quantile(depthity, seq(0,1,length=100), na.rm=TRUE)
+}
+```
+
+```{r}
+n.obs <- nrow(o.data)
+
+dqf <- matrix(0,n.obs, 100)
+for (i in 1:n.obs) {
+  dqf[i,] <- apply(qfs[which(ret.pairs[,1]==i | ret.pairs[,2]==i),],2,mean, na.rm=TRUE)
+}
+```
+
+```{r}
+par(mfrow=c(1,3))
+plot.dqf(o.dqfs$dqf2,labels=o.labels,main='dqf.outlier')
+plot.dqf(o.dqfs.s$dqf1,labels=o.labels,main='dqf.subset direct')
+plot.dqf(dqf,labels=o.labels,main='dqf.subset rets')
+```
+
+## Bimodal with Outliers
+
+```{r}
+set.seed(47)
+x <- rnorm(50,7)
+y <- rnorm(50,7)
+d <- cbind(x,y)
+
+data <- rbind(o.data,d)
+data <- scale(data)
+plot(data,asp=1,col=show(nrow(data),1:53))
+```
+
+```{r}
+# bo.dqfs.s <- dqf.subset(data,subsample=nrow(data))
+# saveRDS(dqf.s, file = "./RDS Files/02a02. bo-dqfs-s.RDS")
+bo.dqfs.s <- readRDS("./RDS Files/02a02. bo-dqfs-s.RDS")
+```
+
+```{r}
+pairs <- bo.dqfs.s$ret.pairs
+rgs <- bo.dqfs.s$ret.goods
+nrow(pairs)
+length(rgs)
+```
+
+```{r}
+subset <- 1:53
+pair.indices <- which(pairs[,1] %in% subset & pairs[,2] %in% subset)
+ret.pairs <- pairs[pair.indices,]
+nrow(ret.pairs)
+```
+
+```{r}
+rgs[[1]][1,][1:53]
+```
+
+```{r}
+depthity <- rep(0,nrow(rgs[[1]]))
+qfs <- matrix(0, nrow=length(pair.indices), ncol=100)
+```
+
+```{r}
+for(i in 1:length(pair.indices)){
+  goods <- rgs[[pair.indices[i]]]
+  for(c in 1:nrow(rgs[[1]])){ # 100
+    good <- goods[c,][subset]
+    depthity[c] <- min(c(sum(good==-1), sum(good==1)))
+  }
+  qfs[i,] <- quantile(depthity, seq(0,1,length=100), na.rm=TRUE)
+}
+```
+
+```{r}
+n.obs <- length(subset)
+
+dqf <- matrix(0,n.obs, 100)
+for (i in 1:n.obs) {
+  dqf[i,] <- apply(qfs[which(ret.pairs[,1]==i | ret.pairs[,2]==i),],2,mean, na.rm=TRUE)
+}
+```
+
+```{r}
+par(mfrow=c(1,3))
+plot.dqf(o.dqfs$dqf2,labels=o.labels,main='dqf.outlier')
+plot.dqf(o.dqfs.s$dqf1,labels=o.labels,main='dqf.subset direct')
+plot.dqf(dqf,labels=o.labels,main='bo.dqf.subset subset')
+```
+
+## Halfmoons and circles dqfs.s
+
+```{r}
+set.seed(47)
+halfmoon <- data.halfmoon()
+hm.data <- halfmoon$data
+hm.labels <- halfmoon$labels
+plot(hm.data, col=hm.labels,asp=1)
+```
+
+```{r}
+n.data <- nrow(hm.data)/2+10
+
+om.data <- hm.data[1:n.data,]
+om.labels <- hm.labels[1:n.data]
+plot(om.data,col=om.labels)
+```
+
+```{r}
+# hm.start <- Sys.time()
+# hm.dqfs.s <- dqf.subset(hm.data,subsample=nrow(hm.data))
+# hm.time <- Sys.time() - hm.start
+# hm.time <- 10.83295
+# saveRDS(hm.dqfs.s, file = "./RDS Files/02a03. hm.dqfs.s.RDS")
+hm.dqfs.s <- readRDS("./RDS Files/02a03. hm.dqfs.s.RDS")
+```
+
+```{r}
+nrow(hm.data)
+pairs <- hm.dqfs.s$ret.pairs
+rgs <- hm.dqfs.s$ret.goods
+nrow(pairs)
+length(rgs)
+```
+
+```{r}
+subset <- 1:n.data
+pair.indices <- which(pairs[,1] %in% subset & pairs[,2] %in% subset)
+ret.pairs <- pairs[pair.indices,]
+nrow(ret.pairs)
+```
+
+```{r}
+depthity <- rep(0,nrow(rgs[[1]]))
+qfs <- matrix(0, nrow=length(pair.indices), ncol=100)
+```
+
+```{r}
+for(i in 1:length(pair.indices)){
+  goods <- rgs[[pair.indices[i]]]
+  for(c in 1:nrow(rgs[[1]])){ # 100
+    good <- goods[c,][subset]
+    depthity[c] <- min(c(sum(good==-1), sum(good==1)))
+  }
+  qfs[i,] <- quantile(depthity, seq(0,1,length=100), na.rm=TRUE)
+}
+```
+
+```{r}
+n.obs <- length(subset)
+
+dqf <- matrix(0,n.obs, 100)
+for (i in 1:n.obs) {
+  dqf[i,] <- apply(qfs[which(ret.pairs[,1]==i | ret.pairs[,2]==i),],2,mean, na.rm=TRUE)
+}
+```
+
+```{r}
+# dqf.outlier object
+om.dqfs <- readRDS("./RDS Files/01a02. om-dqfs.RDS")
+```
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(om.dqfs$dqf2,labels=om.labels,main='dqf.outlier')
+plot.dqf(dqf,labels=om.labels,main='bo.dqf.subset subset')
+```
+
+## Three Circles
+
+```{r}
+set.seed(47)
+three.circles <- data.three.circles()
+c.data <- three.circles$data
+c.labels <- three.circles$labels
+plot(c.data,col=c.labels,asp=1)
+```
+
+```{r}
+# takes too long? too much memory?
+
+# c.start <- Sys.time()
+# c.dqfs.s <- dqf.subset(c.data,subsample=nrow(c.data))
+# c.time <- Sys.time() - c.start
+```
+
+
+
+
+
+
+
+
+
 
