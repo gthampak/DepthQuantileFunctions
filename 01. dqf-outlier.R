@@ -1,3 +1,12 @@
+## ----setup, include=FALSE, eval=FALSE--------------------------------------------------
+## knitr::opts_chunk$set(echo = TRUE)
+
+
+## ---- eval=FALSE, include=FALSE,results='hide'-----------------------------------------
+## knitr::purl("01. dqf-outlier.Rmd")
+
+
+## --------------------------------------------------------------------------------------
 sd.w <- function(x, k) {
   # computes the windsorized standard deviation, called by dqf.outlier
   # Inputs:
@@ -15,6 +24,8 @@ sd.w <- function(x, k) {
   }
 }
 
+
+## --------------------------------------------------------------------------------------
 subsamp.dqf <- function(n.obs, subsample) {
   # called by dqf.outlier, computes random subset of pairs
   pairs <- c()
@@ -27,6 +38,32 @@ subsamp.dqf <- function(n.obs, subsample) {
   return(pairs)
 }
 
+
+## --------------------------------------------------------------------------------------
+plot.dqf <- function(dqf,labels=NULL,xlab='',ylab='',main=''){
+  # plots depth at 100 quantiles on the interval [0,1]
+  x <- seq(.01,1,.01)
+  
+  n.functions <- length(dqf[,1])
+  if(is.null(labels)) labels <- rep(1,n.functions) 
+  
+  plot(x,dqf[1,],t='l',ylim=c(0,max(dqf)),col=labels[1],xlab=xlab,ylab=ylab,main=main)
+  for(i in 2:n.functions){
+    lines(x,dqf[i,],col=labels[i])
+  }
+}
+
+
+## --------------------------------------------------------------------------------------
+show <- function(length,s){
+  # returns labels vector of 1s and 2s where 2s are indices of selected elements
+  labels <- rep(1,length)
+  labels[s] <- 2
+  return(labels)
+}
+
+
+## --------------------------------------------------------------------------------------
 dqf.outlier <- function(data = NULL, gram.mat = NULL, g.scale=2, angle=c(30,45,60), kernel="linear", p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE, k.w=3, adaptive=TRUE, G="norm") {
   # kernelized version of depthity
   # 
@@ -137,25 +174,5 @@ dqf.outlier <- function(data = NULL, gram.mat = NULL, g.scale=2, angle=c(30,45,6
   dqf3 <- dqf3[order(scram),]
   
   return(list(angle=angle, dqf1=dqf1, dqf2=dqf2, dqf3=dqf3))
-}
-
-plot.dqf <- function(dqf,labels=NULL,xlab='',ylab='',main=''){
-  # plots depth at 100 quantiles on the interval [0,1]
-  x <- seq(.01,1,.01)
-  
-  n.functions <- length(dqf[,1])
-  if(is.null(labels)) labels <- rep(1,n.functions) 
-  
-  plot(x,dqf[1,],t='l',ylim=c(0,max(dqf)),col=labels[1],xlab=xlab,ylab=ylab,main=main)
-  for(i in 2:n.functions){
-    lines(x,dqf[i,],col=labels[i])
-  }
-}
-
-show <- function(length,s){
-  # returns labels vector of 1s and 2s where 2s are indices of selected elements
-  labels <- rep(1,length)
-  labels[s] <- 2
-  return(labels)
 }
 

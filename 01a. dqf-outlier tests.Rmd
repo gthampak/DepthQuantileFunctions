@@ -1,0 +1,120 @@
+---
+title: "DQF Outlier Tests"
+output: html_document
+date: "2023-06-12"
+---
+
+```{r setup, include=FALSE, eval=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Import Functions
+
+```{r}
+source("00. datasets.R")
+source("01. dqf-outlier.R")
+```
+
+```{r}
+set.seed(47)
+one.outlier <- data.one.outlier(n.data=50,n.outliers=3, dist.outliers=6)
+o.data <- one.outlier$data
+o.labels <- one.outlier$labels
+```
+
+```{r}
+# o.dqfs <- dqf.outlier(data=o.data,subsample=nrow(o.data))
+# saveRDS(o.dqfs, file = "./RDS Files/01a01. o-dqfs.RDS")
+o.dqfs <- readRDS("./RDS Files/01a01. o-dqfs.RDS")
+```
+
+```{r}
+par(mfrow=c(1,2))
+plot(o.data,col=o.labels,asp=1)
+plot.dqf(o.dqfs$dqf2,labels=o.labels)
+```
+
+```{r}
+set.seed(47)
+halfmoon <- data.halfmoon()
+hm.data <- halfmoon$data
+hm.labels <- halfmoon$labels
+plot(hm.data, col=hm.labels,asp=1)
+```
+
+```{r}
+n.data <- nrow(hm.data)/2 + 10
+one.moon <- om.data <- hm.data[1:n.data,]
+om.labels <- hm.labels[1:n.data]
+plot(one.moon,col=om.labels)
+```
+
+```{r}
+# om.dqfs <- dqf.outlier(data=om.data,subsample=nrow(om.data))
+# saveRDS(om.dqfs, file = "./RDS Files/01a02. om-dqfs.RDS")
+om.dqfs <- readRDS("./RDS Files/01a02. om-dqfs.RDS")
+```
+
+```{r}
+par(mfrow=c(1,2))
+om.labels[c(1:10,(n.data-20):(n.data-10))] <- 3
+plot(om.data,col=om.labels,asp=1)
+plot.dqf(om.dqfs$dqf2,labels=om.labels)
+```
+
+```{r}
+set.seed(47)
+three.circles <- data.three.circles()
+c.data <- three.circles$data
+c.labels <- three.circles$labels
+plot(c.data,col=c.labels,asp=1)
+```
+
+```{r}
+onecircle <- oc.data <- c.data[160:nrow(c.data),]
+oc.labels <- c.labels[160:nrow(c.data)]
+par(mfrow=c(1,2))
+plot(oc.data[1:5,],col=oc.labels[1:5],asp=1)
+plot(oc.data,col=oc.labels,asp=1)
+```
+
+```{r}
+# oc.dqfs <- dqf.outlier(data=oc.data,subsample=nrow(oc.data))
+# saveRDS(oc.dqfs, file = "./RDS Files/01a03. oc-dqfs.RDS")
+oc.dqfs <- readRDS("./RDS Files/01a03. oc-dqfs.RDS")
+```
+
+```{r}
+par(mfrow=c(1,2))
+plot(oc.data,col=oc.labels,asp=1)
+plot.dqf(rbind(oc.dqfs$dqf2[which(oc.labels==3),],oc.dqfs$dqf2[which(oc.labels==2),]),labels=show(nrow(oc.data),(nrow(oc.data)-4):nrow(oc.data)))
+```
+
+```{r}
+plot.dqf(rbind(oc.dqfs$dqf2[which(oc.labels==3),],oc.dqfs$dqf2[which(oc.labels==2),]),labels=show(nrow(oc.data),(nrow(oc.data)-4):nrow(oc.data)))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

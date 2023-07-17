@@ -1,12 +1,19 @@
-## ----setup, include=FALSE, eval=FALSE--------------------------------------------------
-## knitr::opts_chunk$set(echo = TRUE)
+---
+title: "DQF Datasets"
+output: html_document
+date: "2023-06-12"
+---
 
+```{r setup, include=FALSE, eval=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-## ---- eval=FALSE, include=FALSE,results='hide'-----------------------------------------
-## knitr::purl("00. datasets.Rmd")
+# Export
+```{r, eval=FALSE, include=FALSE,results='hide'}
+knitr::purl("00. datasets.Rmd")
+```
 
-
-## --------------------------------------------------------------------------------------
+```{r}
 # one outlier
 data.one.outlier <- function(n.data=50, n.outliers=3, dist.outliers=8){
   # outputs a standardized 2 dimensional standard normal distribution with outliers
@@ -31,9 +38,9 @@ data.one.outlier <- function(n.data=50, n.outliers=3, dist.outliers=8){
   
   return(list(data=data,labels=labels))
 }
+```
 
-
-## --------------------------------------------------------------------------------------
+```{r}
 # half moon
 data.halfmoon <- function(){
   x <- seq(-20,20,.3)
@@ -48,9 +55,9 @@ data.halfmoon <- function(){
   
   return(list(data=m.data,labels=m.labels))
 }
+```
 
-
-## --------------------------------------------------------------------------------------
+```{r}
 data.three.circles <- function(){
   x <- c(runif(20,-1,1),seq(-1,-.9,.03),seq(.9,1,.03))
   y <- sqrt(1-x^2) + rnorm(length(x),0,.1)
@@ -69,4 +76,45 @@ data.three.circles <- function(){
   
   return(list(data=c.data,labels=c.labels))
 }
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -4,13 +4,13 @@ output: html_document
 date: "2023-06-12"
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, eval=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Export
-```{r}
-knitr::purl("dqf-outlier.Rmd")
+```{r, eval=FALSE, include=FALSE,results='hide'}
+knitr::purl("01. dqf-outlier.Rmd")
 ```
 
 ## Functions
