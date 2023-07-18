@@ -1,0 +1,107 @@
+---
+title: "DQF Clustering"
+output: html_document
+date: "2023-06-12"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("00. datasets.R")
+source("01. dqf-outlier.R")
+source("02. dqf-subset.R")
+source("03. extract-dqf-subset.R")
+source("04. dqf-clustering.R")
+```
+
+# Iris Dataset
+
+```{r}
+data(iris)
+```
+
+```{r}
+head(iris)[,1:4]
+nrow(iris)
+
+iris.data <- iris[,1:4]
+iris.scaled <- scale(iris.data)
+```
+
+## k-nn
+
+```{r}
+
+```
+
+
+
+## DQFs
+
+```{r}
+# dqf.scaled <- dqf.subset(iris.scaled,subsample=nrow(iris.scaled))
+# saveRDS(dqf.scaled,"./RDS Files/20a01. Scaled Iris dqf-subset")
+dqf.s <- readRDS("./RDS Files/20a01. Scaled Iris dqf-subset")
+```
+
+```{r}
+subset <- c(51:55,101:150)
+dqf <- extract.dqfs(dqf.scaled,subset)
+plot.dqf(dqf,labels=show(length(subset),1:5))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,69 @@
+---
+title: "DQF Clustering Build"
+output: html_document
+date: "2023-06-12"
+---
+
+```{r setup, include=FALSE, eval=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Import Functions
+
+```{r}
+source("00. datasets.R")
+source("01. dqf-outlier.R")
+source("02. dqf-subset.R")
+source("03. extract-dqf-subset.R")
+```
+
+
+```{r}
+set.seed(47)
+three.cluster <- data.n.modal()
+data <- three.cluster$data
+labels <- three.cluster$labels
+plot(data,col=labels)
+```
+
+```{r}
+# dqf.s <- dqf.subset(data=data)
+# saveRDS(dqf.s, file = "./RDS Files/04a01. 3c-dqfs-s.RDS")
+dqf.s <- readRDS("./RDS Files/04a01. 3c-dqfs-s.RDS")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
