@@ -41,6 +41,49 @@ data.one.outlier <- function(n.data=50, n.outliers=3, dist.outliers=8){
 ```
 
 ```{r}
+# bimodal with outliers
+data.bimodal.outlier <- function() {
+  x <- rnorm(50)
+  y <- rnorm(50)
+  data <- cbind(x,y)
+  
+  x <- rnorm(3,6)
+  y <- rnorm(3,6)
+  d <- cbind(x,y)
+  data <- rbind(data,d)
+  
+  x <- rnorm(50, 12)
+  y <- rnorm(50, 12)
+  d <- cbind(x, y)
+  data <- rbind(data,d)
+
+  data <- scale(data)
+  labels <- c(rep(1,50),rep(2,3),rep(3,50))
+  
+  return(list(data=data,labels=labels))
+}
+```
+
+```{r}
+data.n.modal <- function(n.obs=150,n.modal=3){
+  n <- n.obs/n.modal
+  
+  data <- c()
+  labels <- c()
+  
+  for(i in 1:n.modal){
+    x <- rnorm(n,5*i)
+    y <- rnorm(n,5*i)
+    d <- cbind(x,y)
+    data <- rbind(data,d)
+    labels <- c(labels,rep(i,n))
+  }
+  
+  return(list(data=data,labels=labels))
+}
+```
+
+```{r}
 # half moon
 data.halfmoon <- function(){
   x <- seq(-20,20,.3)
