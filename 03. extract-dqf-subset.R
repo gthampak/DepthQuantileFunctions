@@ -21,16 +21,16 @@ extract.dqfs <- function(dqf.s,subset){
   ret.pairs <- pairs[pair.indices,]
   ret.goods <- dqf.s$ret.goods
   
-  depthity <- rep(0,nrow(rgs[[1]]))
+  depthity <- rep(0,nrow(ret.goods[[1]]))
   qfs <- matrix(0, nrow=length(pair.indices), ncol=100)
   
   for (i in 1:length(pair.indices)) {
     
-    goods <- rgs[[pair.indices[i]]]
+    goods <- ret.goods[[pair.indices[i]]]
     
-    for (c in 1:nrow(rgs[[1]])) {
+    for (c in 1:nrow(ret.goods[[1]])) {
       # 100
-      good <- goods[c, ][subset]
+      good <- goods[c,][subset]
       depthity[c] <- min(c(sum(good == -1), sum(good == 1)))
     }
     
@@ -42,10 +42,17 @@ extract.dqfs <- function(dqf.s,subset){
   n.obs <- length(subset)
   
   dqf <- matrix(0, n.obs, 100)
-  for (i in 1:n.obs) {
-    dqf[i, ] <-
-      apply(qfs[which(ret.pairs[, 1] == i | ret.pairs[, 2] == i), ], 2, mean, na.rm = TRUE)
-  }
   
+  if(length(ret.pairs)==2){
+    dqf[1:2] <- qfs[1]
+  }
+  else{
+    for (i in 1:n.obs) {
+      obs <- subset[i]
+      dqf[i,] <- apply(qfs[which(ret.pairs[, 1] == obs | ret.pairs[, 2] == obs), ], 2, mean, na.rm = TRUE)
+    }
+  }
+ 
+  return(dqf) 
 }
 

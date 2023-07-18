@@ -18,15 +18,57 @@ source("03. extract-dqf-subset.R")
 ```
 
 ```{r}
-
+set.seed(47)
+bo <- data.bimodal.outlier()
+bo.data <- bo$data
+bo.labels <- bo$labels
+par(mfrow=c(1,2))
+plot(bo.data[1:53,],col=bo.labels[1:53],asp=1)
+plot(bo.data,col=bo.labels,asp=1)
 ```
 
+```{r}
+o.dqfs <- readRDS("./RDS Files/01a01. o-dqfs.RDS")
+o.dqfs.s <- readRDS("./RDS Files/02a01. o-dqfs-s.RDS")
+bo.dqfs.s <- readRDS("./RDS Files/02a02. bo-dqfs-s.RDS")
+```
 
+```{r}
+dqf <- extract.dqfs(bo.dqfs.s,1:53)
+```
 
+```{r}
+par(mfrow=c(1,3))
+plot.dqf(o.dqfs$dqf2,labels=show(53,51:53),main='dqf.outlier')
+plot.dqf(o.dqfs.s$dqf1,labels=show(53,51:53),main='dqf.subset direct')
+plot.dqf(dqf,labels=show(53,51:53),main='dqf.subset extract')
+```
 
+```{r}
+set.seed(47)
+hm <- data.halfmoon()
+hm.data <- hm$data
+hm.labels <- hm$labels
+par(mfrow=c(1,3))
+plot(hm.data[1:139,],col=hm.labels[1:139],asp=1)
+plot(hm.data[130:268,],col=hm.labels[130:268],asp=1)
+plot(hm.data,col=hm.labels,asp=1)
+```
 
+```{r}
+hm.dqfs.s <- readRDS("./RDS Files/02a03. hm.dqfs.s.RDS")
+```
 
+```{r}
+dqf1 <- extract.dqfs(hm.dqfs.s,1:139)
+dqf2 <- extract.dqfs(hm.dqfs.s,130:268)
+```
 
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(dqf1,labels=hm.labels[1:139])
+plot.dqf(dqf2,labels=hm.labels[130:268])
+```
 
 
 
