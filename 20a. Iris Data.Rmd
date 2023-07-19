@@ -35,10 +35,63 @@ iris.scaled <- scale(iris.data)
 ## k-nn
 
 ```{r}
-
+library(e1071)
+library(caTools)
+library(class)
 ```
 
+```{r}
+classifier_knn <- knn(train = iris.scaled,
+                      test = iris.scaled,
+                      cl = iris$Species,
+                      k = 13)
+classifier_knn
+```
 
+```{r}
+cm <- table(iris$Species, classifier_knn)
+cm
+```
+
+```{r}
+(150-5)/150
+```
+
+## k-means Clustering
+
+```{r}
+library(ClusterR)
+library(cluster)
+```
+
+```{r}
+set.seed(47)
+kmeans.re <- kmeans(iris.scaled, centers = 3, nstart = 40)
+```
+
+```{r}
+# Cluster identification for 
+# each observation
+kmeans.re$cluster
+  
+# Confusion Matrix
+cm <- table(iris$Species, kmeans.re$cluster)
+cm
+```
+
+## Hierarchical Clustering
+
+```{r}
+distance_mat <- dist(iris.scaled, method = 'euclidean')
+```
+
+```{r}
+set.seed(47)
+Hierar_cl <- hclust(distance_mat, method = "")
+fit <- cutree(Hierar_cl, k = 3)
+cm <- table(iris$Species, fit)
+cm
+```
 
 ## DQFs
 
@@ -50,8 +103,16 @@ dqf.s <- readRDS("./RDS Files/20a01. Scaled Iris dqf-subset")
 
 ```{r}
 subset <- c(51:55,101:150)
-dqf <- extract.dqfs(dqf.scaled,subset)
-plot.dqf(dqf,labels=show(length(subset),1:5))
+dqf1 <- extract.dqfs(dqf.scaled,subset)
+
+subset <- c(51:100)
+dqf2 <- extract.dqfs(dqf.scaled,subset)
+```
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(dqf1,labels=show(length(subset),1:5),main="5 2s vs 3s")
+plot.dqf(dqf2,labels=show(length(subset),1:5),main="2 only")
 ```
 
 
