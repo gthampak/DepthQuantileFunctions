@@ -1,0 +1,119 @@
+---
+title: "DQF Transforms Tests"
+output: html_document
+date: "2023-06-12"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("00. datasets.R")
+source("01. dqf-outlier.R")
+source("02. dqf-subset.R")
+source("03. extract-dqf-subset.R")
+source("10. dqf-transforms.R")
+```
+
+
+## Half (One) Moon Dataset
+
+```{r}
+set.seed(47)
+hm <- data.halfmoon()
+
+subset <- c(1:134,135:139)
+
+par(mfrow=c(1,2))
+plot(hm$data,col=hm$labels)
+plot(hm$data[subset,],col=hm$labels[subset])
+```
+
+```{r}
+## load in a dqf
+dqf.s <- readRDS("./RDS Files/02a03. hm.dqfs.s.RDS")
+```
+
+```{r}
+## extract subset
+dqf <- extract.dqfs(dqf.s,subset)
+```
+
+```{r}
+labels <- c(rep(1,134),rep(2,5))
+plot.dqf(dqf,labels=labels,main="DQF")
+```
+
+## `scale.dqf.max`
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(dqf,labels=labels,main="DQF (Control)")
+plot.dqf(scale.dqf.max(dqf),labels,main="DQF - Scaled to Function Max")
+```
+
+## `scale.dqf.sum`
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(dqf,labels=labels,main="DQF (Control)")
+plot.dqf(scale.dqf.sum(dqf),labels,main="DQF - Scaled to Function Sum (Integral)")
+```
+
+## `scale.dqf.globalmax`
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(dqf,labels=labels,main="DQF (Control)")
+plot.dqf(scale.dqf.globalmax(dqf),labels,main="DQF - Scaled to Global Max")
+```
+
+## `scale.dqf.globalsum`
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(dqf,labels=labels,main="DQF (Control)")
+plot.dqf(scale.dqf.globalsum(dqf),labels,main="DQF - Scaled to Global Sum")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

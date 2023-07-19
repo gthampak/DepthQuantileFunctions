@@ -1,0 +1,133 @@
+---
+title: "DQF Transforms"
+output: html_document
+date: "2023-06-12"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("00. datasets.R")
+source("01. dqf-outlier.R")
+source("02. dqf-subset.R")
+source("03. extract-dqf-subset.R")
+```
+
+# Export
+```{r, eval=FALSE, include=FALSE,results='hide'}
+knitr::purl("10. dqf-transforms.Rmd")
+```
+
+### Scale functions (function specific)
+
+#### `scale.dqf.max`: Given dqfs, where rows and columns are functions' x and y values, scale each function to have min=0, max=1.
+
+```{r}
+scale.dqf.max <- function(dqf){
+  n.functions <- length(dqf[,1])
+  ret <- dqf
+  
+  for(i in 1:n.functions){
+    func.max <- max(dqf[i,])
+    for(j in 1:length(dqf[i,])){
+      ret[i,j] <- dqf[i,j]/func.max
+    }
+  }
+  
+  return(ret)
+}
+```
+
+#### `scale.dqf.sum`: Given dqfs, where rows and columns are functions' x and y values, scale each function to its sum.
+
+```{r}
+scale.dqf.sum <- function(dqf){
+  n.functions <- length(dqf[,1])
+  ret <- dqf
+  
+  for(i in 1:n.functions){
+    func.sum <- sum(dqf[i,])
+    for(j in 1:length(dqf[i,])){
+      ret[i,j] <- dqf[i,j]/func.sum
+    }
+  }
+  
+  return(ret)
+}
+```
+
+### Scale functions (global)
+
+#### `scale.dqf.globalmax`: Given dqfs, where rows and columns are functions' x and y values, scale each function to relative to global max.
+
+```{r}
+scale.dqf.globalmax <- function(dqf){
+  n.functions <- length(dqf[,1])
+  globalmax <- max(dqf)
+  
+  ret <- dqf
+  
+  for(i in 1:n.functions){
+    for(j in 1:length(dqf[i,])){
+      ret[i,j] <- dqf[i,j]/globalmax
+    }
+  }
+  
+  return(ret)
+}
+```
+
+#### `scale.dqf.globalsum`: Given dqfs, where rows and columns are functions' x and y values, scale each function to relative to global sum.
+
+```{r}
+scale.dqf.globalsum <- function(dqf){
+  n.functions <- length(dqf[,1])
+  globalsum <- sum(dqf)
+  
+  ret <- dqf
+  
+  for(i in 1:n.functions){
+    
+    for(j in 1:length(dqf[i,])){
+      ret[i,j] <- dqf[i,j]/globalsum
+    }
+  }
+  
+  return(ret)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

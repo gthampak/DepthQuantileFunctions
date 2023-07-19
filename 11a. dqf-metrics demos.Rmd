@@ -1,0 +1,135 @@
+---
+title: "DQF Metrics Demo"
+output: html_document
+date: "2023-06-12"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("00. datasets.R")
+source("01. dqf-outlier.R")
+source("02. dqf-subset.R")
+source("03. extract-dqf-subset.R")
+source("10. dqf-transforms.R")
+source("11. dqf-metrics.R")
+```
+
+## Half (One) Moon Dataset
+
+```{r}
+set.seed(47)
+hm <- data.halfmoon()
+
+subset <- c(1:134,135:139)
+
+par(mfrow=c(1,2))
+plot(hm$data,col=hm$labels)
+plot(hm$data[subset,],col=hm$labels[subset])
+```
+
+```{r}
+## load in a dqf
+dqf.s <- readRDS("./RDS Files/02a03. hm.dqfs.s.RDS")
+```
+
+```{r}
+## extract subset
+dqf <- extract.dqfs(dqf.s,subset)
+```
+
+```{r}
+labels <- c(rep(1,134),rep(2,5))
+plot.dqf(dqf,labels=labels,main="DQF")
+```
+
+### Draw Mean and SD bounds
+
+```{r}
+par(mfrow=c(1,3))
+plot.dqf(dqf,labels,main="DQF with Mean and 1SD Bounds")
+draw.mean.bounds(dqf.mean(dqf),dqf.sd(dqf),n.sd=1)
+plot.dqf(dqf,labels,main="DQF with Mean and 2SD Bounds")
+draw.mean.bounds(dqf.mean(dqf),dqf.sd(dqf))
+plot.dqf(dqf,labels,main="DQF with Mean and 3SD Bounds")
+draw.mean.bounds(dqf.mean(dqf),dqf.sd(dqf),n.sd=3)
+```
+
+### 2-norm
+
+```{r}
+par(mfrow=c(1,3))
+plot.dqf.2norm(dqf,n.sd=1,main="2-norm (DQF,Mean(DQF))")
+plot.dqf.2norm(dqf,n.sd=2,main="2-norm (DQF,Mean(DQF))")
+plot.dqf.2norm(dqf,n.sd=3,main="2-norm (DQF,Mean(DQF))")
+```
+
+### supnorm
+
+```{r}
+par(mfrow=c(1,3))
+plot.dqf.supnorm(dqf,n.sd=1,main="sup-norm (DQF,Mean(DQF))")
+plot.dqf.supnorm(dqf,n.sd=2,main="sup-norm (DQF,Mean(DQF))")
+plot.dqf.supnorm(dqf,n.sd=3,main="sup-norm (DQF,Mean(DQF))")
+```
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf.2norm(dqf,main="2-norm (DQF,Mean(DQF))")
+plot.dqf.supnorm(dqf, main="sup-norm (DQF,Mean(DQF))")
+```
+
+### proportion outside sd
+
+```{r}
+plot.prop.outside.bounds(dqf,threshold=.2,n.sd=2,main="")
+```
+
+## z-scores
+
+`plot.zscore.dqf`
+
+```{r}
+par(mfrow=c(1,2))
+plot.dqf(dqf,labels,main="DQF with Mean and 2SD Bounds")
+draw.mean.bounds(dqf.mean(dqf),dqf.sd(dqf),2)
+plot.zscore.dqf(dqf,labels)
+```
+
+`plot.mean.zscores`
+
+```{r}
+plot.mean.zscores(dqf,labels)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
