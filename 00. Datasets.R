@@ -135,3 +135,53 @@ data.double.helix <- function(n.nodes=150,noise=.05,n.spirals=1.5){
   return(list(data=data,labels=labels))
 }
 
+
+## ---------------------------------------------------------------------------------------------------------------------------------------------
+generate.filament <- function(n=150, step_size=0.05, bool_func=TRUE) {
+  # bool_func: generate function by restricting theta
+  x <- c(); y <- c()
+  x[1] <- runif(1)
+  y[1] <- runif(1)
+  theta <- runif(1, 0, 360)
+  if (bool_func) {
+    theta <- runif(1, -30, 30)
+  }
+  
+  data.x <- c()
+  data.y <- c()
+  
+  for (i in 2:n) {
+    # idea 1: generate data on axis orthogonal to direction
+    # idea 2: generate data in bivariate normal around point
+    
+    perp_theta <- theta + 90
+    # should implement random number of points
+    # num_points <- runif(1, 0, 2)
+    dist <- rnorm(1, 0, 0.08)
+    data.x[i-1] <- x[i-1] + dist*cos(perp_theta*pi/180)
+    data.y[i-1] <- y[i-1] + dist*sin(perp_theta*pi/180)
+    
+    
+    x[i] <- x[i-1] + step_size*cos(theta*pi/180)
+    y[i] <- y[i-1] + step_size*sin(theta*pi/180)
+    
+    if (bool_func) {
+      old_theta <- theta
+      theta <- theta + rnorm(1, 0, 15)
+      while (theta > 90 | theta < -90) {
+        theta <- old_theta + rnorm(1, 0, 15)
+      }
+    }
+    else { theta <- theta + rnorm(1, 0, 15) }
+    # could implement some idea of inertia to prevent sharp switchbacks/encourage smoothness?
+  }
+
+  x <- (x-min(x))/(max(x)-min(x)) 
+  y <- (y-min(y))/(max(y)-min(y))
+  data.x <- (data.x-min(data.x))/(max(data.x)-min(data.x))
+  data.y <- (data.y-min(data.y))/(max(data.y)-min(data.y))
+  #plot(x, y, type='l')
+  #points(data.x, data.y)
+  return(cbind(data.x, data.y))
+}
+

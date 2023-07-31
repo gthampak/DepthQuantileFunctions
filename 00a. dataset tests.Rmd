@@ -40,8 +40,51 @@ labels <- double.helix$labels
 scatterplot3d(data,color=labels)
 ```
 
+```{r}
+set.seed(47)
 
+x <- seq(-2,5,.05)
+n <- length(x)
+x <- scale(x) + rnorm(n,0,.08)
+y <- sin(x) + cos(2*x) + sin(2*x) + rnorm(n,0,.08)
+data <- cbind(x,y)
+labels <- rep(2,n)
 
+x <- runif(100,-2,2)
+y <- runif(100,-2.5,2)
+n.labels <- rep(1,length(x))
+noise <- cbind(x,y) 
+
+data <- rbind(data,noise)
+data <- scale(data)
+nrow(data)
+plot(data,col=c(labels,n.labels),asp=1)
+
+distance_mat <- dist(data, method = "euclidean")
+Hierar_cl <- hclust(distance_mat, method = "single") # p1
+clusters <- cutree(Hierar_cl, k = 40)
+
+plot(data,col=clusters,asp=1)
+plot(data[which(clusters==1),],asp=1)
+```
+
+```{r}
+set.seed(47)
+par(mfrow=c(2,2))
+for(i in 1:4){
+  data <- generate.filament(200,.05,TRUE)
+  plot(data)
+}
+```
+
+```{r}
+set.seed(47)
+par(mfrow=c(2,2))
+for(i in 1:4){
+  data <- generate.filament(200,.08,FALSE)
+  plot(data)
+}
+```
 
 
 
