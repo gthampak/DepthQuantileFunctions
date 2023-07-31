@@ -1,0 +1,139 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+require(devtools)
+devtools::install_github("gthampak/DQFClustering")
+require(DQFClustering)
+require(glue)
+```
+
+```{r}
+extract.dqfs <- function(dqf.s,subset){
+
+  pairs <- dqf.s$ret.pairs
+  pair.indices <- which(pairs[,1] %in% subset & pairs[,2] %in% subset)
+  
+  ret.pairs <- pairs[pair.indices,]
+  ret.goods <- dqf.s$ret.goods
+  
+  depthity <- rep(0,nrow(ret.goods[[1]]))
+  qfs <- matrix(0, nrow=length(pair.indices), ncol=100)
+  
+  for (i in 1:length(pair.indices)) {
+    
+    goods <- ret.goods[[pair.indices[i]]]
+    
+    for (c in 1:nrow(ret.goods[[1]])) {
+      # 100
+      good <- goods[c,][subset]
+      depthity[c] <- min(c(sum(good == -1), sum(good == 1)))
+    }
+    
+    qfs[i, ] <- quantile(depthity, seq(0, 1, length = 100), na.rm = TRUE)
+    
+  }
+  
+  
+  n.obs <- length(subset)
+  
+  dqf <- matrix(0, n.obs, 100)
+  print(length(ret.pairs))
+  for (i in 1:n.obs) {
+    obs <- subset[i]
+    dqf[i,] <- apply(qfs[which(ret.pairs[, 1] == obs | ret.pairs[, 2] == obs), ], 2, mean, na.rm = TRUE)
+  }
+ 
+  return(dqf) 
+}
+```
+
+```{r}
+plot(data)
+```
+
+```{r}
+set.seed(47)
+data <- generate.filament(n=100,step_size=0.1,bool_func=TRUE)
+n <- nrow(data)
+labels <- rep(2,n)
+plot(data,col=labels)
+
+n.noise <- 100
+x <- runif(n.noise)
+y <- runif(n.noise)
+noise <- cbind(x,y)
+data <- rbind(data,noise)
+labels <- c(labels,rep(1,n.noise))
+plot(data,col=labels)
+```
+
+```{r}
+distance_mat <- dist(data, method = 'euclidean')
+Hierar_cl <- hclust(distance_mat, method = "single")
+clusters <- cutree(Hierar_cl, k = 25)
+
+plot(data,col=clusters,asp=1)
+```
+
+
+```{r}
+dqf.s <- dqf.subset(data,subsample=nrow(data))
+```
+
+```{r}
+dqf.c <- dqf.clustering(data,dqf.s=dqf.s,initial.clusters=clusters)
+```
+
+```{r}
+plot(data,col=show(nrow(data),which(clusters==1)),asp=1)
+```
+```{r}
+plot(data,col=dqf.c$final.clusters)
+```
+
+```{r}
+c <- dqf.c$final.clusters
+```
+
+```{r}
+plot(data[which(organize.clusters(c)==1),])
+```
+
+```{r}
+dqf <- extract.dqfs(dqf.s,which(organize.clusters(c)==1))
+```
+
+```{r}
+subset  <- c(80:120)
+l <- show(nrow(dqf),subset)
+plot(data[which(organize.clusters(c)==1),],col=l)
+plot.dqf(dqf,labels=l)
+dqf.c.diagnostics(dqf,labels=l)
+```
+
+```{r}
+mean.zscores <- rowSums(dqf.zscore(scale.dqf.sum(dqf)), na.rm = TRUE)/length(dqf[1,])
+interest <- c()
+for(i in 1:length(mean.zscores)){
+  if(mean.zscores[i] > 1){
+    interest <- c(interest,i)
+  }
+}
+interest
+
+l <- show(nrow(dqf),interest)
+plot(data[which(organize.clusters(c)==1),],col=l)
+plot.dqf(dqf,labels=l)
+dqf.c.diagnostics(dqf,labels=l)
+```
+
+
+
+
+
+
+
