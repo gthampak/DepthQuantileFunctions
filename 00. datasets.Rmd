@@ -2,6 +2,8 @@
 title: "DQF Datasets"
 output: html_document
 date: "2023-06-12"
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE, eval=FALSE}
@@ -121,8 +123,27 @@ data.three.circles <- function(){
 }
 ```
 
-
-
+```{r}
+data.double.helix <- function(n.nodes=150,noise=.05,n.spirals=1.5){
+  z <- seq(0,1,1/n.nodes)[1:n.nodes]*2*pi*n.spirals
+  z1 <- z + rnorm(n.nodes,0,noise)
+  x <- sin(z1) + rnorm(n.nodes,0,noise)
+  y <- cos(z1) + rnorm(n.nodes,0,noise)
+  data <- cbind(x,y,z1)
+  
+  offset <- pi
+  z2 <- z + rnorm(n.nodes,0,noise)
+  x <- sin(z2 + offset) + rnorm(n.nodes,0,noise)
+  y <- cos(z2 + offset) + rnorm(n.nodes,0,noise)
+  d <- cbind(x,y,z2)
+  data <- rbind(data,d)
+  data <- scale(data)
+  
+  labels <- c(rep(1,n.nodes),rep(2,n.nodes))
+  
+  return(list(data=data,labels=labels))
+}
+```
 
 
 

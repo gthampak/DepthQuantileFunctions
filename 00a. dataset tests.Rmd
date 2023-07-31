@@ -2,6 +2,8 @@
 title: "DQF Datasets"
 output: html_document
 date: "2023-06-12"
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE, eval=FALSE}
@@ -27,13 +29,16 @@ three.circles <- data.three.circles()
 plot(three.circles$data,col=three.circles$labels,asp=1)
 ```
 
+```{r}
+library("scatterplot3d")
+```
 
-
-
-
-
-
-
+```{r}
+double.helix <- data.double.helix()
+data <- double.helix$data
+labels <- double.helix$labels
+scatterplot3d(data,color=labels)
+```
 
 
 
