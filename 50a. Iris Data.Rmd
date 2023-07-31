@@ -1,0 +1,183 @@
+---
+title: "DQF Clustering"
+output: html_document
+date: "2023-06-12"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("00. datasets.R")
+source("01. dqf-outlier.R")
+source("02. dqf-subset.R")
+source("03. extract-dqf-subset.R")
+source("10. dqf-transforms.R")
+source("11. dqf-metrics.R")
+source("40. dqf-diagnostics.R")
+```
+
+# Iris Dataset
+
+```{r}
+data(iris)
+```
+
+```{r}
+iris.data <- iris[,1:4]
+iris.scaled <- scale(iris.data)
+```
+
+## k-nn
+
+```{r}
+library(e1071)
+library(caTools)
+library(class)
+```
+
+```{r}
+classifier_knn <- knn(train = iris.scaled,
+                      test = iris.scaled,
+                      cl = iris$Species,
+                      k = 13)
+# classifier_knn
+```
+
+```{r}
+cm <- table(iris$Species, classifier_knn)
+cm
+```
+
+```{r}
+(150-5)/150
+```
+
+## k-means Clustering
+
+```{r}
+library(ClusterR)
+library(cluster)
+```
+
+```{r}
+set.seed(47)
+kmeans.re <- kmeans(iris.scaled, centers = 3, nstart = 40)
+
+# Confusion Matrix
+cm <- table(iris$Species, kmeans.re$cluster)
+cm
+```
+
+```{r}
+set.seed(47)
+kmeans.re <- kmeans(iris.scaled, centers = 6, nstart = 40)
+
+# Confusion Matrix
+cm <- table(iris$Species, kmeans.re$cluster)
+cm
+```
+
+```{r}
+set.seed(47)
+kmeans.re <- kmeans(iris.scaled, centers = 10, nstart = 40)
+
+# Confusion Matrix
+cm <- table(iris$Species, kmeans.re$cluster)
+cm
+```
+
+```{r}
+set.seed(47)
+kmeans.re <- kmeans(iris.scaled, centers = 12, nstart = 40)
+
+# Confusion Matrix
+cm <- table(iris$Species, kmeans.re$cluster)
+cm
+```
+
+## Hierarchical Clustering
+
+```{r}
+distance_mat <- dist(iris.scaled, method = 'euclidean')
+```
+
+```{r}
+set.seed(47)
+Hierar_cl <- hclust(distance_mat, method = "single")
+fit <- cutree(Hierar_cl, k = 3)
+cm <- table(iris$Species, fit)
+cm
+```
+
+## DQFs
+
+```{r}
+# dqf.scaled <- dqf.subset(iris.scaled,subsample=nrow(iris.scaled))
+# saveRDS(dqf.scaled,"./RDS Files/20a01. Scaled Iris dqf-subset")
+dqf.s <- readRDS("./RDS Files/50a01. Scaled Iris dqf-subset")
+```
+
+```{r}
+subset <- c(101:150,51:55)
+dqf <- extract.dqfs(dqf.s,subset)
+```
+
+```{r}
+dqf.diagnostics(dqf,labels=show(length(subset),51:55))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
