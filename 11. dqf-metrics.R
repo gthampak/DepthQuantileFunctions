@@ -214,7 +214,7 @@ plot.zscore.dqf <- function(dqf,labels=NULL,main=""){
   if(is.null(labels)) labels <- rep(1,length(dqf[,1]))
   
   x <- seq(.01,1,.01)
-  plot(x,scaled[1,],t='l',col=labels[1],ylim=c(min(scaled),max(scaled)),main=main)
+  plot(x,scaled[1,],t='l',col=labels[1],ylim=c(min(scaled,na.rm=TRUE),max(scaled,na.rm=TRUE)),main=main)
   for(i in 2:length(scaled[,1])){
     lines(x,scaled[i,],col=labels[i])
   }
@@ -222,10 +222,10 @@ plot.zscore.dqf <- function(dqf,labels=NULL,main=""){
 
 
 ## -------------------------------------------------------------------------------------------------------------------------------------------------------
-plot.mean.zscores <- function(dqf,labels=NULL){
-  mean.zscores <- rowSums(dqf.zscore(dqf))/length(dqf[1,])
+plot.mean.zscores <- function(dqf,labels=NULL,main=""){
+  mean.zscores <- rowSums(dqf.zscore(dqf),na.rm=TRUE)/length(dqf[1,])
   if(is.null(labels)) labels <- rep(1,length(dqf[,1]))
   
-  plot(mean.zscores,col=labels)
+  plot(mean.zscores,col=labels,ylim=c(min(mean.zscores,na.rm=TRUE),max(mean.zscores,na.rm=TRUE)),main="")
 }
 
