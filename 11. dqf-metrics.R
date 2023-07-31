@@ -190,7 +190,7 @@ plot.prop.outside.bounds <- function(dqf,threshold=.2,n.sd=2,main=""){
   }
   
   plot(count,col=labels,main=main)
-  abline(h=.2)
+  abline(h=threshold)
   
 }
 
