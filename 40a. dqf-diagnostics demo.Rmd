@@ -1,0 +1,58 @@
+---
+title: "DQF Metrics Demo"
+output: html_document
+date: "2023-06-12"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("00. datasets.R")
+source("01. dqf-outlier.R")
+source("02. dqf-subset.R")
+source("03. extract-dqf-subset.R")
+source("10. dqf-transforms.R")
+source("11. dqf-metrics.R")
+source("40. dqf-diagnostics.R")
+```
+
+## Data
+
+```{r}
+set.seed(47)
+hm <- data.halfmoon()
+
+subset <- c(1:134,135:139)
+
+par(mfrow=c(1,2))
+plot(hm$data,col=hm$labels)
+plot(hm$data[subset,],col=hm$labels[subset])
+```
+
+```{r}
+## load in a dqf
+dqf.s <- readRDS("./RDS Files/02a03. hm.dqfs.s.RDS")
+```
+
+```{r}
+## extract subset
+dqf <- extract.dqfs(dqf.s,subset)
+labels <- c(rep(1,134),rep(2,5))
+```
+
+## Demo
+
+```{r}
+dqf.diagnostics(dqf,labels=labels)
+```
+
+
+
+
+
+
+
