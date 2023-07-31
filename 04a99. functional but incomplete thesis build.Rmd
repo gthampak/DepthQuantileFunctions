@@ -1,78 +1,11 @@
----
-title: "DQF Clustering Build"
-output: html_document
-date: "2023-06-12"
-editor_options: 
-  chunk_output_type: console
----
 
-```{r setup, include=FALSE, eval=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-Import Functions
 
 ```{r}
-source("00. datasets.R")
-source("01. dqf-outlier.R")
-source("02. dqf-subset.R")
-source("03. extract-dqf-subset.R") 
-source("04. dqf-clustering.R")
-```
-
-```{r}
-trimodal <- data.n.modal()
-data <- trimodal$data
-plot(data)
-```
-
-```{r}
-dqf.s <- readRDS("./RDS Files/04a01. 3c-dqfs-s.RDS")
-```
-
-```{r}
-dqfs <- extract.dqfs(dqf.s,95:150)
-plot.dqf(dqfs)
-```
-
-# Current Version in Notebook 04a01
-
-## Modifying `initial.cluster`
-
-```{r}
-initial.cluster <- function(data,n.clusters,cluster.method,p1){
+initial.cluster <- function(data,n.clusters){
   n.obs <- nrow(data)
-  
-  distance_mat <- dist(data, method = "euclidean")
-  clusters <- NULL
-  
-  tryCatch(expr = {
-    if (cluster.method == "HC") {
-      
-      if(is.null(p1)){ p1 <- "single"}
-      
-      Hierar_cl <- hclust(distance_mat, method = p1) # p1
-      clusters <- cutree(Hierar_cl, k = n.clusters)
-    }
-    else if (cluster.method == "KM") {
-      set.seed(47)
-      
-      if(is.null(p1)){ p1 <- 40 }
-      
-      kmeans.re <- kmeans(data, centers = n.clusters, nstart = p1)
-      clusters <- kmeans.re$cluster
-      print(p1)
-    }
-    else {
-      return("error.clustermethod")
-    }
-  },
-  error = function(e) { return("error.parameter")},
-  warning = function(w) { return("error.parameter")},
-  finally = {}
-  )
-  
-  if(is.null(clusters)){ return("error.parameter") }
+  distance_mat <- dist(data, method = 'euclidean')
+  Hierar_cl <- hclust(distance_mat, method = 'single')
+  clusters <- cutree(Hierar_cl, k = n.clusters)
   
   # calculate minimum distance between clusters
   
@@ -110,7 +43,7 @@ initial.cluster <- function(data,n.clusters,cluster.method,p1){
 ```
 
 ```{r}
-dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20,cluster.method=NULL,cluster.param=NULL, gram.mat = NULL, g.scale=2, angle=c(45), kernel="linear", p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE, k.w=3, adaptive=TRUE, G="norm"){
+dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20, gram.mat = NULL, g.scale=2, angle=c(45), kernel="linear", p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE, k.w=3, adaptive=TRUE, G="norm"){
   
   # data <- scale(data)
   
@@ -118,35 +51,15 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20,cluster.method=N
   if (is.null(data)) n.obs <- nrow(gram.mat)
   if (is.null(gram.mat)) n.obs <- nrow(data)
   
-  # calculate all sub-samples
-  subsample <- n.obs
-
-  # perform initial clustering
-  print("Performing initial clustering.")
+  subsample <- n.obs # calculate all sub-samples
   
-  if(is.null(cluster.method)){
-    cluster.method <- "HC"
-    cluster.param <- "single"
-  }
+  # initial clustering
+  ic <- initial.cluster(data,n.clusters)
+  clusters <- ic$clusters
+  inter.dists <- ic$inter.dists
+  closest.pts <- ic$closest.pts
   
-  ic <- initial.cluster(data,n.clusters,cluster.method=cluster.method,p1=cluster.param)
   
-  if(is.character(ic)){
-    if(ic == "error.parameter"){
-      print("Invalid input for cluster.param")
-      return()
-    }
-    else if(ic == "error.clustermethod"){
-      print("Invalid input for cluster.method")
-      return()
-    }
-  }
-  else{
-    clusters <- ic$clusters
-    inter.dists <- ic$inter.dists
-    closest.pts <- ic$closest.pts
-  }
-
   combined.clusters <- list()
   for(i in 1:n.clusters) combined.clusters[[i]] <- c(i)
   
@@ -155,9 +68,6 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20,cluster.method=N
     print("Calculating `dqf.subset`...")
     dqf.s <- dqf.subset(data = data, gram.mat = gram.mat, g.scale=g.scale, angle=angle, kernel=kernel, p1=p1, p2=p2, n.splits=n.splits, subsample=subsample, z.scale=z.scale, k.w=k.w, adaptive=adaptive, G=G)
     print("`dqf.subset` calculations complete.")
-  }
-  else{
-    print("dqf.s object provided.")
   }
   
   print("We will now begin combining clusters.")
@@ -169,13 +79,8 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20,cluster.method=N
     
     if(min(inter.dists)==Inf){
       final.clusters <- compile.clusters(clusters, combined.clusters)
-      
-      print("Clustering Complete. dqf.s object and final.clusters returned.")
-      
       return(list(dqf.s=dqf.s,final.clusters=final.clusters))
     }
-    
-    max.dist <- max.dist(inter.dists)
     mi <- which.min(inter.dists) # mi is short for min.index
     rc <- row.col(inter.dists,mi)
     row <- rc$row; col <- rc$col
@@ -186,10 +91,18 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20,cluster.method=N
     pt1.index <- closest.pts[cpc$c2,cpc$c1] # index of closest point in cluster group 1 to cg2
     
     subset1 <- c(all.indices(clusters,combined.clusters[[row]]),pt2.index)
+    # ed1 <- extract.depths(dqf.s,subset1)
+    # depths1 <- ed1$depths; subset1.pairs <- ed1$subset.pairs
+    # qfs1 <- calculate.qfs(depths=depths1,dqf.s$k.to.mids,dqf.s$splits)
+    # dqfs1 <- calculate.dqfs(qfs1,subset1.pairs,subset1,n.obs)
     dqfs1 <- extract.dqfs(dqf.s,subset1)
     labels1 <- rep(1,length(subset1)); labels1[which(subset1==pt2.index)] <- 2
     
     subset2 <- c(all.indices(clusters,combined.clusters[[col]]),pt1.index)
+    # ed2 <- extract.depths(dqf.s,subset2)
+    # depths2 <- ed2$depths; subset2.pairs <- ed2$subset.pairs
+    # qfs2 <- calculate.qfs(depths=depths2,dqf.s$k.to.mids,dqf.s$splits)
+    # dqfs2 <- calculate.dqfs(qfs2,subset2.pairs,subset2,n.obs)
     dqfs2 <- extract.dqfs(dqf.s,subset2)
     labels2 <- rep(1,length(subset2)); labels2[which(subset2==pt1.index)] <- 2
     
@@ -204,18 +117,19 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20,cluster.method=N
         inter.dists[combined.clusters[[col]],combined.clusters[[row]]] <- Inf
         move.on <- TRUE
       }else if(s == "No"){
+        # print("Are you sure? If yes, combinning clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} will not be revisited.")
+        # s <- readline()
         inter.dists[combined.clusters[[row]],combined.clusters[[col]]] <- Inf
         inter.dists[combined.clusters[[col]],combined.clusters[[row]]] <- Inf
         move.on <- TRUE
-      }else if(s == "pp"){
-        inter.dists[combined.clusters[[row]],combined.clusters[[col]]] <- inter.dists[combined.clusters[[row]],combined.clusters[[col]]] + max.dist
-        inter.dists[combined.clusters[[col]],combined.clusters[[row]]] <- inter.dists[combined.clusters[[col]],combined.clusters[[row]]] + max.dist
-        move.on <- TRUE
-      }else if(s %in% combined.clusters[[row]]){
+      }else if(s == "Later"){
+        print("Later")
+        s <- readline()
+      }else if(s == row){
         plot.dqf(dqfs1,labels1)
         combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
-      }else if(s %in% combined.clusters[[col]]){
+      }else if(s == col){
         plot.dqf(dqfs2,labels2)
         combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
@@ -232,44 +146,7 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,n.clusters=20,cluster.method=N
   
   final.clusters <- compile.clusters(clusters, combined.clusters)
   
-  print("Process terminated. dqf.s object and final.clusters returned.")
-  
   return(list(dqf.s=dqf.s,final.clusters=final.clusters))
   
 }
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
