@@ -1,8 +1,8 @@
-## ----setup, include=FALSE--------------------------------------------------------------------------------------------------------------------------------
+## ----setup, include=FALSE---------------------------------------------------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
 
 
-## --------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------------------------------------------------------------------------
 source("00. datasets.R")
 source("01. dqf-outlier.R")
 source("02. dqf-subset.R")
@@ -11,11 +11,11 @@ source("10. dqf-transforms.R")
 source("11. dqf-metrics.R")
 
 
-## ---- eval=FALSE, include=FALSE,results='hide'-----------------------------------------------------------------------------------------------------------
+## ---- eval=FALSE, include=FALSE,results='hide'------------------------------------------------------------------------------------------------
 ## knitr::purl("40. dqf-diagnostics.Rmd")
 
 
-## --------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------------------------------------------------------------------------
 dqf.diagnostics <- function(dqf,labels=NULL){
   if(is.null(labels)){
     labels <- rep(1,nrow(dqf))
@@ -60,5 +60,30 @@ dqf.diagnostics <- function(dqf,labels=NULL){
   plot.mean.zscores(dqf,labels,main="mean z-score")
   plot.mean.zscores(dqf.maxed,labels,"(maxed)")
   plot.mean.zscores(dqf.summed,labels,"(summed)")
+}
+
+
+## ---------------------------------------------------------------------------------------------------------------------------------------------
+dqf.c.diagnostics <- function(dqf,labels=NULL){
+  if(is.null(labels)){
+    labels <- rep(1,nrow(dqf))
+  }
+  
+  dqf.maxed <- scale.dqf.max(dqf)
+  dqf.summed <- scale.dqf.sum(dqf)
+  
+  par(mfrow=c(2,3))
+  
+  plot.dqf(dqf,labels=labels,main="DQF - with Bounds")
+  draw.mean.bounds(dqf.mean(dqf),dqf.sd(dqf))
+  plot.dqf(dqf.summed,labels=labels,main="DQF Scaled to Function Sum")
+  draw.mean.bounds(dqf.mean(dqf.summed),dqf.sd(dqf.summed))
+  
+  plot.zscore.dqf(dqf,labels,main="dqf z-scores")
+  plot.zscore.dqf(dqf.summed,labels,main="(Summed)")
+  
+  plot.mean.zscores(dqf,labels,main="mean z-score")
+  plot.mean.zscores(dqf.summed,labels,main="(summed)")
+  
 }
 

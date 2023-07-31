@@ -72,6 +72,39 @@ dqf.diagnostics <- function(dqf,labels=NULL){
 }
 ```
 
+```{r}
+dqf.c.diagnostics <- function(dqf,labels=NULL){
+  if(is.null(labels)){
+    labels <- rep(1,nrow(dqf))
+  }
+  
+  dqf.maxed <- scale.dqf.max(dqf)
+  dqf.summed <- scale.dqf.sum(dqf)
+  
+  par(mfrow=c(2,3))
+  
+  plot.dqf(dqf,labels=labels,main="DQF - with Bounds")
+  draw.mean.bounds(dqf.mean(dqf),dqf.sd(dqf))
+  plot.dqf(dqf.summed,labels=labels,main="DQF Scaled to Function Sum")
+  draw.mean.bounds(dqf.mean(dqf.summed),dqf.sd(dqf.summed))
+  
+  plot.zscore.dqf(dqf,labels,main="dqf z-scores")
+  plot.zscore.dqf(dqf.summed,labels,main="(Summed)")
+  
+  plot.mean.zscores(dqf,labels,main="mean z-score")
+  plot.mean.zscores(dqf.summed,labels,main="(summed)")
+  
+}
+```
+
+
+
+
+
+
+
+
+
 
 
 
