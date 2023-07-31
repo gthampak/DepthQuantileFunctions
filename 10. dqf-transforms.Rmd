@@ -10,7 +10,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, eval=FALSE, include=FALSE,results='hide'}
 source("00. datasets.R")
 source("01. dqf-outlier.R")
 source("02. dqf-subset.R")

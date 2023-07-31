@@ -2,13 +2,13 @@
 knitr::opts_chunk$set(echo = TRUE)
 
 
-## ---------------------------------------------------------------------------------------------------------------------------------------------
-source("00. datasets.R")
-source("01. dqf-outlier.R")
-source("02. dqf-subset.R")
-source("03. extract-dqf-subset.R")
-source("10. dqf-transforms.R")
-source("11. dqf-metrics.R")
+## ---- eval=FALSE, include=FALSE,results='hide'------------------------------------------------------------------------------------------------
+## source("00. datasets.R")
+## source("01. dqf-outlier.R")
+## source("02. dqf-subset.R")
+## source("03. extract-dqf-subset.R")
+## source("10. dqf-transforms.R")
+## source("11. dqf-metrics.R")
 
 
 ## ---- eval=FALSE, include=FALSE,results='hide'------------------------------------------------------------------------------------------------
