@@ -5,6 +5,8 @@ Many machine learning and statistical methods rely on distance as a metric for s
 
 Depth Quantile Functions (DQFs) are innovated by Gabe Chandler (Pomona College Mathematics and Statistics) and Wolfgang Polonik (UC Davis Statistics). It was been shown to work well in [surpervised learning](https://projecteuclid.org/journals/annals-of-statistics/volume-49/issue-2/Multiscale-geometric-feature-extraction-for-high-dimensional-and-non-Euclidean/10.1214/20-AOS1988.full) and [anomaly detection](https://arxiv.org/abs/2201.06682). My work (advised by Gabe Chandler) extends the use of DQFs to unsupervised settings.
 
+---
+
 Work done as part of MATH190 and MATH191 (Senior Theses Class) can be found in the folder titled [ThesisWork](https://github.com/gthampak/DepthQuantileFunctions/tree/main/ThesisWork).
 
 Repository has been restructured for organization and readability post thesis work (summer 2023).
