@@ -3,7 +3,7 @@ title: "DQF Clustering"
 output: html_document
 date: "2023-06-12"
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -23,7 +23,8 @@ knitr::purl("04. dqf-clustering.Rmd")
 ```
 
 ```{r}
-library(glue)
+install.packages("glue")
+require(glue)
 ```
 
 Helper Functions
@@ -212,12 +213,26 @@ compile.clusters <- function(clusters, combined.clusters){
 ```
 
 ```{r}
+organize.clusters <- function(clusters){
+  min.pointer <- 1
+  max.pointer <- max(clusters)
+  while(max(clusters) != length(unique(clusters))){
+    while(min.pointer %in% unique(clusters)) min.pointer <- min.pointer+1
+    clusters[which(clusters==max(clusters))] <- min.pointer
+  }
+  
+  return(clusters)
+}
+```
+
+```{r}
 combine.prompt <- function(row,col,inter.dists,combined.clusters){
-  yes <- '"Yes"'; no <- '"No"'; pp <- '"pp"'; d <- '"d"'
+  yes <- '"Yes"'; no <- '"No"'; pp <- '"pp"'; d <- '"d"'; b <- '"b"'
   print(glue('Clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} are the closest by Euclidean distance (dist = {inter.dists[row,col]}).'))
   print(glue('Type "{as.character(combined.clusters[[row]][1])}" for dqfs of points in cluster "{cluster.string(combined.clusters[[row]])}" and closest point from cluster "{cluster.string(combined.clusters[[col]])}".'))
   print(glue('Type "{as.character(combined.clusters[[col]][1])}" for dqfs of points in cluster "{cluster.string(combined.clusters[[col]])}" and closest point from cluster "{cluster.string(combined.clusters[[row]])}".'))
-  print(glue('Type {d} to view full dqf diagnostics for displayed data.'))
+  print(glue('Type {b} (for both) to view both DQF plots.'))
+  print(glue('Type {d} (for diagnostics) to view full dqf diagnostics for displayed data.'))
   print(glue('Enter {yes} to combine clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])}.'))
   print(glue('Enter {no} to move on to next clusters.'))
   print(glue('Enter {pp} (for postpone) to consider combining these clusters later.'))
@@ -292,6 +307,8 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
       }
     }
     else{
+      organize.clusters(clusters)
+      
       clusters <- ic$clusters
       inter.dists <- ic$inter.dists
       closest.pts <- ic$closest.pts
@@ -301,6 +318,8 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
   else{
     print("Starting clusters inputted. Calculating inter-cluster distances.")
     print("---")
+    
+    n.clusters <- length(unique(initial.clusters))
     ic <- calculate.inter.dists(data, clusters)
     clusters <- ic$clusters
     inter.dists <- ic$inter.dists
@@ -333,9 +352,8 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
     
     if(min(inter.dists)==Inf){
       final.clusters <- compile.clusters(clusters, combined.clusters)
-      
+      organize.clusters(final.clusters)
       print("Clustering Complete. dqf.s object and final.clusters returned.")
-      
       return(list(dqf.s=dqf.s,final.clusters=final.clusters))
     }
     
@@ -358,6 +376,9 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
     labels2 <- rep(1,length(subset2)); labels2[which(subset2==pt1.index)] <- 2
     
     diag.num <- row
+    par(mfrow=c(1,2))
+    plot.dqf(dqfs1,labels1,glue('C{cluster.string(combined.clusters[[row]])} and pt from C{cluster.string(combined.clusters[[col]])}.'))
+    plot.dqf(dqfs2,labels2,glue('C{cluster.string(combined.clusters[[col]])} and pt from C{cluster.string(combined.clusters[[row]])}.'))
     combine.prompt(row,col,inter.dists,combined.clusters)
     
     s <- readline()
@@ -377,12 +398,14 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
         inter.dists[combined.clusters[[col]],combined.clusters[[row]]] <- inter.dists[combined.clusters[[col]],combined.clusters[[row]]] + max.dist
         move.on <- TRUE
       }else if(s %in% combined.clusters[[row]]){
-        plot.dqf(dqfs1,labels1)
+        par(mfrow=c(1,1))
+        plot.dqf(dqfs1,labels1,glue('C{cluster.string(combined.clusters[[row]])} and pt from C{cluster.string(combined.clusters[[col]])}.'))
         combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
         diag.num <- s
       }else if(s %in% combined.clusters[[col]]){
-        plot.dqf(dqfs2,labels2)
+        par(mfrow=c(1,1))
+        plot.dqf(dqfs2,labels2,glue('C{cluster.string(combined.clusters[[col]])} and pt from C{cluster.string(combined.clusters[[row]])}.'))
         combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
         diag.num <- s
@@ -397,8 +420,13 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
           s <- readline()
         }
         par(mfrow=c(1,1))
-      }
-      else if(s == 'exit'){
+      }else if(s == 'b'){
+        par(mfrow=c(1,2))
+        plot.dqf(dqfs1,labels1,glue('C{cluster.string(combined.clusters[[row]])} and pt from C{cluster.string(combined.clusters[[col]])}.'))
+        plot.dqf(dqfs2,labels2,glue('C{cluster.string(combined.clusters[[col]])} and pt from C{cluster.string(combined.clusters[[row]])}.'))
+        combine.prompt(row,col,inter.dists,combined.clusters)
+        s <- readline()
+      }else if(s == 'exit'){
         move.on = TRUE
       }else{
         print("Invalid input")
@@ -406,18 +434,15 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
         s <- readline()
       }
     }
-    
   }
   
   final.clusters <- compile.clusters(clusters, combined.clusters)
-  
+  organize.clusters(final.clusters)
   print("Process terminated. dqf.s object and final.clusters returned.")
-  
   return(list(dqf.s=dqf.s,final.clusters=final.clusters))
   
 }
 ```
-
 
 
 
