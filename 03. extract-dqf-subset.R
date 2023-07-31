@@ -42,10 +42,20 @@ extract.dqfs <- function(dqf.s,subset){
   n.obs <- length(subset)
   
   dqf <- matrix(0, n.obs, 100)
-  for (i in 1:n.obs) {
-    obs <- subset[i]
-    dqf[i,] <- apply(qfs[which(ret.pairs[, 1] == obs | ret.pairs[, 2] == obs), ], 2, mean, na.rm = TRUE)
+  
+  if(length(ret.pairs)==2){ # avoid incorrect dimensions
+    for (i in 1:n.obs) {
+      obs <- subset[i]
+      dqf[i,] <- apply(qfs, 2, mean, na.rm = TRUE)
+    }
+  } 
+  else{
+    for (i in 1:n.obs) {
+      obs <- subset[i]
+      dqf[i,] <- apply(qfs[which(ret.pairs[, 1] == obs | ret.pairs[, 2] == obs), ], 2, mean, na.rm = TRUE)
+    }
   }
+  
  
   return(dqf) 
 }
