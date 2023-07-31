@@ -145,13 +145,13 @@ compile.clusters <- function(clusters, combined.clusters){
 
 ```{r}
 combine.prompt <- function(row,col,inter.dists,combined.clusters){
-  yes <- '"Yes"'; no <- '"No"'; pp <- '"Postpone"'
+  yes <- '"Yes"'; no <- '"No"'; pp <- '"pp"'
   print(glue('Clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} are the closest by Euclidean distance (dist = {inter.dists[row,col]}).'))
   print(glue('Type "{as.character(combined.clusters[[row]][1])}" for dqfs of points in cluster "{cluster.string(combined.clusters[[row]])}" and closest point from cluster "{cluster.string(combined.clusters[[col]])}".'))
   print(glue('Type "{as.character(combined.clusters[[col]][1])}" for dqfs of points in cluster "{cluster.string(combined.clusters[[col]])}" and closest point from cluster "{cluster.string(combined.clusters[[row]])}".'))
   print(glue('Enter {yes} to combine clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])}?'))
   print(glue('Enter {no} to move on to next clusters.'))
-  print(glue('Enter {pp} to consider combining these clusters later.'))
+  print(glue('Enter {pp} (for postpone) to consider combining these clusters later.'))
 }
 ```
 
