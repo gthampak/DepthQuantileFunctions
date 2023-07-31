@@ -11,4 +11,4 @@ Work done as part of MATH190 and MATH191 (Senior Theses Class) can be found in t
 
 Repository has been restructured for organization and readability post thesis work (summer 2023).
 
-(Work in Progress) R package for clustering using Depth Quantile Functions can be found [here](https://github.com/gthampak/DQFClustering).
+R package for clustering using Depth Quantile Functions can be found [here](https://github.com/gthampak/DQFClustering).
