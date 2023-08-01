@@ -118,7 +118,7 @@ cm
 ```{r}
 # dqf.scaled <- dqf.subset(iris.scaled,subsample=nrow(iris.scaled))
 # saveRDS(dqf.scaled,"./RDS Files/20a01. Scaled Iris dqf-subset")
-dqf.s <- readRDS("./RDS Files/50a01. Scaled Iris dqf-subset")
+dqf.s <- readRDS("./RDS Files/50a01. Scaled Iris dqf-subset.RDS")
 ```
 
 ```{r}

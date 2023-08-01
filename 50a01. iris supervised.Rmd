@@ -1,0 +1,218 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```
+require(devtools)
+devtools::install_github("gthampak/DQFClustering")
+require(DQFClustering)
+require(glue)
+```
+
+```
+data(iris)
+```
+
+```
+dqf.s <- readRDS("./RDS Files/50a01. Scaled Iris dqf-subset.RDS")
+```
+
+```{r}
+classes <- list()
+classes[[1]] <- 1:50
+classes[[2]] <- 51:100
+classes[[3]] <- 101:150
+```
+
+```{r}
+dqf.classify <- function(dqf.s,classes,element.index){
+  for(i in 1:length(classes)){
+    class <- classes[[i]][!classes[[i]] %in% c(element.index)]
+    
+    dqf <- extract.dqfs(dqf.s,c(class,element.index))
+    dqf.c.diagnostics(dqf,labels=show(length(class)+1,length(class)+1))
+    
+    r <- zscore.rank(dqf,length(class)+1)
+    r.sum <- zscore.rank(dqf,length(class)+1)
+    
+    print(mean(c(r,r.sum)))
+  }
+}
+```
+
+
+```{r}
+c1 <- sample(1:50,10)
+i <- 1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+c1[i]
+dqf.classify(dqf.s,classes,c1[i])
+i <- i+1
+```
+
+```{r}
+i
+```
+
+## Class 2
+
+```{r}
+c2 <- sample(51:100,10)
+i <- 1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+c2[i]
+dqf.classify(dqf.s,classes,c2[i])
+i <- i+1
+```
+
+```{r}
+i
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
