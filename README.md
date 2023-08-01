@@ -7,8 +7,32 @@ Depth Quantile Functions (DQFs) are innovated by Gabe Chandler (Pomona College M
 
 ---
 
+### Repository Organization
+
 Work done as part of MATH190 and MATH191 (Senior Theses Class) can be found in the folder titled [ThesisWork](https://github.com/gthampak/DepthQuantileFunctions/tree/main/ThesisWork).
 
 Repository has been restructured for organization and readability post thesis work (summer 2023).
 
-R package for clustering using Depth Quantile Functions can be found [here](https://github.com/gthampak/DQFClustering).
+Each layer of numbers and characters are used to create a tree-like hierachical structure with topics and subtopics.
+
+- 00 series - Functions to generate simulated datasets
+- 01 series - Functions from the dqfAnomaly R package (Chandler). The code can be found [here](https://github.com/GabeChandler/AnomalyDetection).
+- 02 series - Functions used to create `dqf.subset` objects, which is used to calculate average depth quantile functions of subsets of data quickly.
+- 03 series - Functions that calculate average depth quantile functions from `dqf.subset` object.
+- 04 series - The `dqf.clustering` function and its helper functions.
+- 10 series - Transformation functions for average depth quantile functions, used to highlight patterns and differences between DQFs.
+- 20 series - Functions used to evaluate patterns and differences between DQFs.
+- 40 series - Functions that compile comprehensive sets of DQF transformations and metrics for the user.
+- 50 series - Evaluating effectiveness of using DQFs for clustering.
+
+---
+### Using DQFClustering
+
+Repository and instructions for how to download and use the R package for `dqf.clustering` can be found [here](https://github.com/gthampak/DQFClustering).
+
+---
+### TODO:
+- More testing with Real Data.
+- Make it easier to identify indices of data point of interest from dqf and dqf diagnostic plots.
+- Implement adaptivity.
+- Explore more ways that dqf.clustering beats single linkage hierarchical clustering.
