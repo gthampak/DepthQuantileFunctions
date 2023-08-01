@@ -28,7 +28,7 @@ Each layer of numbers and characters are used to create a tree-like hierachical 
 ---
 ### Using DQFClustering
 
-Instructions for how to download and use the R package for `dqf.clustering` can be found [here](https://github.com/gthampak/DQFClustering).
+Repository and instructions for how to download and use the R package for `dqf.clustering` can be found [here](https://github.com/gthampak/DQFClustering).
 
 ---
 ### TODO:
