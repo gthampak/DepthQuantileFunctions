@@ -116,10 +116,11 @@ dqf.c.diagnostics(dqf,labels=l)
 ```
 
 ```{r}
-mean.zscores <- rowSums(dqf.zscore(scale.dqf.sum(dqf)), na.rm = TRUE)/length(dqf[1,])
+mean.zscores <- rowSums(dqf.zscore(dqf), na.rm = TRUE)/length(dqf[1,])
+mean.zscores.sum <- rowSums(dqf.zscore(scale.dqf.sum(dqf)), na.rm = TRUE)/length(dqf[1,])
 interest <- c()
 for(i in 1:length(mean.zscores)){
-  if(mean.zscores[i] > 1){
+  if(mean.zscores[i] > .8 & mean.zscores.sum[i] > .8){
     interest <- c(interest,i)
   }
 }
@@ -129,6 +130,47 @@ l <- show(nrow(dqf),interest)
 plot(data[which(organize.clusters(c)==1),],col=l)
 plot.dqf(dqf,labels=l)
 dqf.c.diagnostics(dqf,labels=l)
+```
+
+
+```{r}
+plot.dqf(scale.dqf.max(dqf), l)
+```
+
+```{r}
+l5 <- x(scale.dqf.max(dqf),n.sd = 1.5,threshold = .12)
+```
+
+```{r}
+x <- function (dqf, threshold = 0.2, n.sd = 2, main = "") 
+{
+  n <- length(dqf[, 1])
+  count <- rep(0, n)
+  labels <- rep(1, n)
+  mean <- dqf.mean(dqf)
+  sd <- dqf.sd(dqf)
+  lower.bound <- dqf.lowerbound(mean, sd, n.sd)
+  upper.bound <- dqf.upperbound(mean, sd, n.sd)
+  for (i in 1:n) {
+    for (j in 1:length(dqf[i, ])) {
+      if (dqf[i, j] < lower.bound[j] | dqf[i, j] > upper.bound[j]) 
+        count[i] <- count[i] + 1
+    }
+    count[i] <- count[i]/n
+    if (count[i] > threshold) 
+      labels[i] <- 2
+  }
+  plot(count, col = labels, main = main)
+  abline(h = 0.2)
+  
+  return(labels)
+}
+
+```
+
+
+```{r}
+plot(data[which(organize.clusters(c)==1),],col=l5)
 ```
 
 
