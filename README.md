@@ -18,3 +18,4 @@ TODO:
 - More testing with Real Data.
 - Make it easier to identify indices of data point of interest from dqf and dqf diagnostic plots.
 - Implement adaptivity.
+- Explore more ways that dqf.clustering beats single linkage hierarchical clustering.
