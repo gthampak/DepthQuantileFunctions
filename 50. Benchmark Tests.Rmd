@@ -3,7 +3,7 @@ title: "DQF Clustering Benchmark Tests"
 output: html_document
 date: "2023-06-12"
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -18,13 +18,20 @@ source("03. extract-dqf-subset.R")
 source("04. dqf-clustering.R")
 ```
 
+```{r}
+tm <- data.n.modal()
+data <- tm$data
+labels <- tm$labels
+plot(data,col=labels,asp=1)
+```
 
+```{r}
+dqf.s <- readRDS("./RDS Files/04a01. 3c-dqfs-s.RDS")
+```
 
-
-
-
-
-
+```{r}
+dqf.c <- dqf.clustering(data=data,dqf.s=dqf.s,n.clusters=6)
+```
 
 
 
