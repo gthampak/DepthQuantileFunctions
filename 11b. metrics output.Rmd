@@ -1,0 +1,27 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+ranks <- function(vector,element.indices){
+  sorted <- sort(vector)
+  
+  ret <- c()
+  if()
+  for(i in element.indices){
+    ret <- c(ret,which(vector[i] == sorted))
+  }
+  
+  return(ret)
+}
+```
+
+```{r}
+zscore.rank <- function(dqf,element.indices){
+  mean.zscores <- rowSums(dqf.zscore(dqf),na.rm=TRUE)/length(dqf[1,])
+  
+  return(ranks(mean.zscores,element.indices))
+}
+```
