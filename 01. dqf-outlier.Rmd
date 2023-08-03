@@ -53,7 +53,7 @@ subsamp.dqf <- function(n.obs, subsample) {
 ```{r}
 plot.dqf <- function(dqf,labels=NULL,xlab='',ylab='',main=''){
   # plots depth at 100 quantiles on the interval [0,1]
-  x <- seq(.01,1,.01)
+  x <- seq(0,1,length.out=ncol(dqf))
   
   n.functions <- length(dqf[,1])
   if(is.null(labels)) labels <- rep(1,n.functions) 
