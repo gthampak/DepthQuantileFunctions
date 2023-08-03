@@ -58,7 +58,7 @@ plot.dqf <- function(dqf,labels=NULL,xlab='',ylab='',main=''){
   n.functions <- length(dqf[,1])
   if(is.null(labels)) labels <- rep(1,n.functions) 
   
-  plot(x,dqf[1,],t='l',ylim=c(0,max(dqf)),col=labels[1],xlab=xlab,ylab=ylab,main=main)
+  plot(x,dqf[1,],t='l',ylim=c(min(dqf),max(dqf)),col=labels[1],xlab=xlab,ylab=ylab,main=main)
   for(i in 2:n.functions){
     lines(x,dqf[i,],col=labels[i])
   }
