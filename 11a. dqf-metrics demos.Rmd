@@ -106,12 +106,43 @@ plot.zscore.dqf(dqf,labels)
 plot.mean.zscores(dqf,labels)
 ```
 
+```{r}
+x <- seq(-4,4,.1)
+y1 <- x^2
+y2 <- (x-1)^2
 
+plot(y1,t='l')
+lines(y2)
 
+d <- rbind(y1,y2)
 
+length(y1)
+length(y2)
 
+plot.dqf(d)
+plot.dqf(derivative(d))
+```
 
+```{r}
+par(mfrow=c(1,2))
+deriv <- derivative(dqf)
+plot.dqf(deriv,labels,main="DQF with Mean and 2SD Bounds")
+draw.mean.bounds(dqf.mean(deriv),dqf.sd(deriv),2)
+plot.zscore.dqf(deriv,labels)
+```
 
+```{r}
+plot.mean.zscores(dqf,labels)
+plot.mean.zscores(deriv)
+```
+```{r}
+z <- dqf.zscore(dqf)
+deriv.z <- derivative(z)
+plot.dqf(deriv.z,labels)
+draw.mean.bounds(dqf.mean(deriv.z),dqf.sd(deriv.z),2)
+
+plot.mean.zscores(deriv.z,labels)
+```
 
 
 

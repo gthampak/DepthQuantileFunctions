@@ -1,24 +1,24 @@
-## ----setup, include=FALSE------------------------------------------------------------------------------------------------------------------------------
+## ----setup, include=FALSE--------------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
 
 
-## ---- eval=FALSE, include=FALSE,results='hide'---------------------------------------------------------------------------------------------------------
+## ---- eval=FALSE, include=FALSE,results='hide'-----------------------------------
 ## source("00. datasets.R")
 ## source("01. dqf-outlier.R")
 ## source("02. dqf-subset.R")
 ## source("03. extract-dqf-subset.R")
 
 
-## ---- eval=FALSE, include=FALSE,results='hide'---------------------------------------------------------------------------------------------------------
+## ---- eval=FALSE, include=FALSE,results='hide'-----------------------------------
 ## knitr::purl("04. dqf-clustering.Rmd")
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
-install.packages("glue")
-require(glue)
+## ---- eval=FALSE, include=FALSE,results='hide'-----------------------------------
+## install.packages("glue")
+## require(glue)
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 row.col <- function(dataframe,index){
   n.row <- nrow(dataframe); n.col <- ncol(dataframe)
   
@@ -31,7 +31,7 @@ row.col <- function(dataframe,index){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 initial.cluster <- function(data,n.clusters,cluster.method,p1){
   n.obs <- nrow(data)
   
@@ -101,7 +101,7 @@ initial.cluster <- function(data,n.clusters,cluster.method,p1){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 calculate.inter.dists <- function(data, clusters) {
   
   n.clusters <- length(unique(clusters))
@@ -141,7 +141,7 @@ calculate.inter.dists <- function(data, clusters) {
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 max.dist <- function(inter.dists){
   id <- inter.dists
   for(i in 1:length(id)){ if(id[i] == Inf) id[i] <- 0 }
@@ -149,7 +149,7 @@ max.dist <- function(inter.dists){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 combine.clusters <- function(combined.clusters,c1,c2){
   combined.clusters[[c1]] <- sort(c(combined.clusters[[c1]],combined.clusters[[c2]]))
   for(c in combined.clusters[[c1]]) combined.clusters[[c]] <- combined.clusters[[c1]]
@@ -157,7 +157,7 @@ combine.clusters <- function(combined.clusters,c1,c2){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 all.indices <- function(clusters, cluster.group){
   # to ensure function works with both single and vector cluster.group inputs
   v <- c()
@@ -170,7 +170,7 @@ all.indices <- function(clusters, cluster.group){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 closest.pt.clusters <- function(inter.dists, cg1, cg2){
   n.cg1 <- length(c(cg1))
   n.cg2 <- length(c(cg2))
@@ -185,7 +185,7 @@ closest.pt.clusters <- function(inter.dists, cg1, cg2){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 compile.clusters <- function(clusters, combined.clusters){
   final.clusters <- clusters
   for(i in 1:length(combined.clusters)){
@@ -201,7 +201,7 @@ compile.clusters <- function(clusters, combined.clusters){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 organize.clusters <- function(clusters){
   min.pointer <- 1
   max.pointer <- max(clusters)
@@ -214,7 +214,7 @@ organize.clusters <- function(clusters){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 combine.prompt <- function(row,col,inter.dists,combined.clusters){
   yes <- '"Yes"'; no <- '"No"'; pp <- '"pp"'; d <- '"d"'; b <- '"b"'
   print(glue('Clusters {cluster.string(combined.clusters[[row]])} and {cluster.string(combined.clusters[[col]])} are the closest by Euclidean distance (dist = {inter.dists[row,col]}).'))
@@ -228,7 +228,7 @@ combine.prompt <- function(row,col,inter.dists,combined.clusters){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 cluster.string <- function(cluster){
   
   ret <- '{'
@@ -244,7 +244,7 @@ cluster.string <- function(cluster){
 }
 
 
-## ------------------------------------------------------------------------------------------------------------------------------------------------------
+## --------------------------------------------------------------------------------
 dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.clusters=NULL,cluster.method=NULL,cluster.param=NULL, gram.mat = NULL, g.scale=2, angle=c(45), kernel="linear", p1=1, p2=0, n.splits=100, subsample=50, z.scale=TRUE, k.w=3, adaptive=TRUE, G="norm"){
   
   # data <- scale(data)
@@ -296,6 +296,8 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
       }
     }
     else{
+      organize.clusters(clusters)
+      
       clusters <- ic$clusters
       inter.dists <- ic$inter.dists
       closest.pts <- ic$closest.pts
@@ -411,6 +413,7 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
         par(mfrow=c(1,2))
         plot.dqf(dqfs1,labels1,glue('C{cluster.string(combined.clusters[[row]])} and pt from C{cluster.string(combined.clusters[[col]])}.'))
         plot.dqf(dqfs2,labels2,glue('C{cluster.string(combined.clusters[[col]])} and pt from C{cluster.string(combined.clusters[[row]])}.'))
+        combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
       }else if(s == 'exit'){
         move.on = TRUE
@@ -419,11 +422,7 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
         combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
       }
-      par(mfrow=c(1,2))
-      plot.dqf(dqfs1,labels1,glue('C{cluster.string(combined.clusters[[row]])} and pt from C{cluster.string(combined.clusters[[col]])}.'))
-      plot.dqf(dqfs2,labels2,glue('C{cluster.string(combined.clusters[[col]])} and pt from C{cluster.string(combined.clusters[[row]])}.'))
     }
-    
   }
   
   final.clusters <- compile.clusters(clusters, combined.clusters)

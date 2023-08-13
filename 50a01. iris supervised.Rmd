@@ -7,6 +7,9 @@ editor_options:
 ```
 require(devtools)
 devtools::install_github("gthampak/DQFClustering")
+```
+
+```
 require(DQFClustering)
 require(glue)
 ```
@@ -15,7 +18,7 @@ require(glue)
 data(iris)
 ```
 
-```
+```{r}
 dqf.s <- readRDS("./RDS Files/50a01. Scaled Iris dqf-subset.RDS")
 ```
 
@@ -44,6 +47,7 @@ dqf.classify <- function(dqf.s,classes,element.index){
 
 
 ```{r}
+set.seed(47)
 c1 <- sample(1:50,10)
 i <- 1
 ```
@@ -115,6 +119,7 @@ i
 ## Class 2
 
 ```{r}
+set.seed(47)
 c2 <- sample(51:100,10)
 i <- 1
 ```
