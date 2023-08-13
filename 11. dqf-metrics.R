@@ -220,7 +220,13 @@ plot.zscore.dqf <- function(dqf,labels=NULL,main=""){
   if(is.null(labels)) labels <- rep(1,length(dqf[,1]))
   
   x <- seq(0,1,length.out=ncol(dqf))
-  plot(x,scaled[1,],t='l',col=labels[1],ylim=c(min(scaled,na.rm=TRUE),max(scaled,na.rm=TRUE)),main=main,ylab="z-score")
+  y1 <- min(scaled,na.rm=TRUE)
+  y2 <- max(scaled,na.rm=TRUE)
+  
+  if(y1==Inf){y1<-1}
+  if(y2==-Inf){y2<-0}
+  
+  plot(x,scaled[1,],t='l',col=labels[1],ylim=c(y1,y2),main=main,ylab="z-score")
   for(i in 2:length(scaled[,1])){
     lines(x,scaled[i,],col=labels[i])
   }

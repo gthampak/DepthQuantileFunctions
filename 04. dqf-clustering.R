@@ -381,24 +381,28 @@ dqf.clustering <- function(data = NULL,dqf.s=NULL,initial.clusters=NULL,n.cluste
         inter.dists[combined.clusters[[col]],combined.clusters[[row]]] <- inter.dists[combined.clusters[[col]],combined.clusters[[row]]] + max.dist
         move.on <- TRUE
       }else if(s %in% combined.clusters[[row]]){
+        par(mfrow=c(1,1))
         plot.dqf(dqfs1,labels1)
         combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
-        diag.num <- s
+        if(s %in% c(combined.clusters[[row]],combined.clusters[[col]])) diag.num <- s
       }else if(s %in% combined.clusters[[col]]){
+        par(mfrow=c(1,1))
         plot.dqf(dqfs2,labels2)
         combine.prompt(row,col,inter.dists,combined.clusters)
         s <- readline()
-        diag.num <- s
+        if(s %in% c(combined.clusters[[row]],combined.clusters[[col]])) diag.num <- s
       }else if(s == 'd'){
         if(diag.num %in% combined.clusters[[row]]){
           dqf.c.diagnostics(dqfs1,labels1)
           combine.prompt(row,col,inter.dists,combined.clusters)
           s <- readline()
+          if(s %in% c(combined.clusters[[row]],combined.clusters[[col]])) diag.num <- s
         } else{
           dqf.c.diagnostics(dqfs2,labels2)
           combine.prompt(row,col,inter.dists,combined.clusters)
           s <- readline()
+          if(s %in% c(combined.clusters[[row]],combined.clusters[[col]])) diag.num <- s
         }
         par(mfrow=c(1,1))
       }

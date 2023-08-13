@@ -1,0 +1,46 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+require(devtools)
+devtools::install_github("gthampak/DQFClustering")
+require(DQFClustering)
+require(glue)
+```
+
+```{r}
+tm <- data.n.modal()
+data <- tm$data
+labels <- tm$labels
+
+plot(data,col=labels,asp=1)
+```
+
+```{r}
+dqf.s <- dqf.subset(data=data,subsample=nrow(data))
+```
+
+```{r}
+# run dqf.clustering(data=data,dqf.s=dqf.s,n.clusters=6) in the console.
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

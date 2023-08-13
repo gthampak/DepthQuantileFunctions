@@ -11,7 +11,7 @@ require(DQFClustering)
 require(glue)
 ```
 
-```{r}
+```
 extract.dqfs <- function(dqf.s,subset){
 
   pairs <- dqf.s$ret.pairs
